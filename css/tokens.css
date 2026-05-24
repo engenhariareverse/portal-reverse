@@ -1,0 +1,84 @@
+:root {
+  /* Paleta JOTEC */
+  --preto: #1A1A1A;
+  --dourado: #C5A04A;
+  --grafite: #4A4A4A;
+  --offwhite: #F8F6F2;
+
+  /* Derivados */
+  --dourado-hover: #D4AF56;
+  --dourado-light: rgba(197, 160, 74, 0.12);
+  --dourado-border: rgba(197, 160, 74, 0.4);
+  --preto-soft: #242424;
+  --sidebar-hover: rgba(197, 160, 74, 0.10);
+  --grafite-light: rgba(74, 74, 74, 0.12);
+  --grafite-border: rgba(74, 74, 74, 0.22);
+  --branco: #FFFFFF;
+
+  /* Texto */
+  --text-primary: #1A1A1A;
+  --text-secondary: #4A4A4A;
+  --text-muted: #888888;
+  --text-inverse: #F8F6F2;
+
+  /* Cores de apoio (identidade visual) */
+  --azul-petroleo: #1F3A4A;
+  --vermelho-alerta: #B33A2E;
+  --verde-conformidade: #2E7D5E;
+
+  /* Status UI */
+  --verde: #2E7D32;
+  --verde-bg: rgba(46, 125, 50, 0.10);
+  --vermelho: #C62828;
+  --vermelho-bg: rgba(198, 40, 40, 0.10);
+  --laranja: #E65100;
+  --laranja-bg: rgba(230, 81, 0, 0.10);
+  --azul: #1565C0;
+  --azul-bg: rgba(21, 101, 192, 0.10);
+
+  /* Layout */
+  --sidebar-w: 240px;
+  --header-h: 60px;
+
+  /* Border radius */
+  --r-sm: 4px;
+  --r: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+
+  /* Sombras */
+  --shadow-xs: 0 1px 2px rgba(26,26,26,0.08);
+  --shadow-sm: 0 1px 4px rgba(26,26,26,0.10);
+  --shadow: 0 2px 8px rgba(26,26,26,0.12);
+  --shadow-lg: 0 4px 20px rgba(26,26,26,0.15);
+
+  /* Tipografia */
+  --font-titulo: 'Montserrat', 'Segoe UI Semibold', 'Trebuchet MS', sans-serif;
+  --font-corpo: 'Inter', 'Segoe UI', system-ui, sans-serif;
+
+  /* Transições */
+  --trans: 0.18s ease;
+  --trans-slow: 0.30s ease;
+}
+
+/* ── Tema Escuro ─────────────────────────────── */
+[data-tema="escuro"] {
+  --offwhite:  #1C1C1E;
+  --branco:    #26262A;
+  --text-primary:   #E8E5DF;
+  --text-secondary: #A0A0A8;
+  --text-muted:     #9494A0;
+  --grafite-border: rgba(255, 255, 255, 0.10);
+  --grafite-light:  rgba(255, 255, 255, 0.06);
+  --dourado-light:  rgba(197, 160, 74, 0.18);
+  --dourado-border: rgba(197, 160, 74, 0.35);
+  --preto-soft:     #2C2C30;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.45);
+  --shadow:    0 2px 8px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.65);
+  --verde-bg:    rgba(46, 125, 50,   0.20);
+  --vermelho-bg: rgba(198, 40, 40,   0.20);
+  --laranja-bg:  rgba(230, 81, 0,    0.20);
+  --azul-bg:     rgba(21, 101, 192,  0.20);
+}

@@ -1,0 +1,1300 @@
+/* ── Dashboard ──────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.kpi-card {
+  background: var(--branco);
+  border-radius: var(--r-lg);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--grafite-border);
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  cursor: pointer;
+  transition: all var(--trans);
+  text-decoration: none;
+}
+.kpi-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--dourado-border);
+  transform: translateY(-1px);
+}
+.kpi-card--alert {
+  border-color: rgba(198,40,40,0.3);
+}
+
+.kpi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.kpi-icon--dourado { background: var(--dourado-light); }
+.kpi-icon--preto   { background: var(--grafite-light); }
+.kpi-icon--azul    { background: var(--azul-bg); }
+.kpi-icon--verde   { background: var(--verde-bg); }
+
+.kpi-content { flex: 1; min-width: 0; }
+.kpi-value {
+  font-family: var(--font-titulo);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin-bottom: 3px;
+}
+.kpi-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.kpi-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 700px) {
+  /* KPIs: 2 por linha no mobile */
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .kpi-card { padding: 14px 12px; gap: 10px; }
+  .kpi-value { font-size: 20px; }
+
+  /* Modais ocupam tela cheia */
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+    margin: 0;
+  }
+
+  /* Formulários: 1 coluna */
+  .form-grid { grid-template-columns: 1fr !important; }
+
+  /* Abas com scroll horizontal */
+  .fin-tabs { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+  .fin-tabs::-webkit-scrollbar { display: none; }
+  .fin-tab { white-space: nowrap; padding: 9px 14px; }
+
+  /* Filtros em coluna */
+  .fin-hist-filtros { flex-direction: column; align-items: stretch; }
+  .fin-hist-filtros .btn { width: 100%; justify-content: center; }
+
+  /* Items do financeiro e prospecção */
+  .fin-item { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+  .fin-item-valor { min-width: auto; font-size: 14px; }
+  .fin-item-actions { width: 100%; display: flex; gap: 4px; flex-wrap: wrap; }
+
+  /* Kanban: scroll com snap */
+  .kanban-board,
+  #prosp-corpo [style*="overflow-x:auto"] > div {
+    scroll-snap-type: x mandatory;
+  }
+  .kanban-col,
+  .prosp-kanban-col {
+    scroll-snap-align: start;
+  }
+
+  /* Tabelas mini viram scroll horizontal */
+  .table-mini { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Touch targets mínimos */
+  .btn { min-height: 44px; padding-left: 14px; padding-right: 14px; }
+  .btn--sm { min-height: 38px; }
+  .nav-item { padding: 14px 20px; }
+
+  /* KPI cards do dashboard sem transform (evita lag no mobile) */
+  .kpi-card:hover { transform: none; }
+
+  /* Serviços e documentos: 1 coluna */
+  .servicos-grid { grid-template-columns: 1fr; }
+  .doc-grid      { grid-template-columns: 1fr; }
+}
+
+/* ── Serviços ──────────────────────────────── */
+.servicos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 18px;
+}
+
+.servico-card {
+  background: var(--branco);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--grafite-border);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  transition: box-shadow var(--trans), border-color var(--trans);
+}
+.servico-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--dourado-border);
+}
+
+.servico-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.servico-nome {
+  font-family: var(--font-titulo);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+.servico-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.servico-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.servico-precos {
+  display: flex;
+  gap: 1px;
+  border: 1px solid var(--grafite-border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.preco-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 8px;
+  background: var(--offwhite);
+  gap: 3px;
+}
+.preco-item--ideal {
+  background: var(--dourado-light);
+  position: relative;
+}
+
+.preco-label {
+  font-size: 10px;
+  font-family: var(--font-titulo);
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.preco-val {
+  font-family: var(--font-titulo);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.preco-val--dourado { color: #7A5F1A; }
+
+/* ── Orçamentos ──────────────────────────────── */
+.filtros-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.orc-item {
+  background: var(--offwhite);
+  border: 1.5px solid var(--grafite-border);
+  border-radius: var(--r);
+  padding: 14px;
+  transition: border-color var(--trans);
+}
+.orc-item:hover {
+  border-color: var(--dourado-border);
+}
+
+.pag-btn--active {
+  background: var(--preto) !important;
+  color: var(--offwhite) !important;
+  border-color: var(--preto) !important;
+}
+
+/* ── Agenda ──────────────────────────────────── */
+.agenda-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.agenda-visoes {
+  display: flex;
+  gap: 4px;
+}
+
+.agenda-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.agenda-titulo-periodo {
+  font-family: var(--font-titulo);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 200px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+/* ── Calendário Mês ── */
+.cal-mes {
+  background: var(--branco);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--grafite-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.cal-cabecalho {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--offwhite);
+  border-bottom: 1px solid var(--grafite-border);
+}
+
+.cal-dia-nome {
+  padding: 10px 4px;
+  text-align: center;
+  font-family: var(--font-titulo);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.cal-dia {
+  min-height: 96px;
+  padding: 8px 6px;
+  border-right: 1px solid var(--grafite-border);
+  border-bottom: 1px solid var(--grafite-border);
+  cursor: pointer;
+  transition: background var(--trans);
+}
+.cal-dia:hover { background: var(--offwhite); }
+.cal-dia:nth-child(7n) { border-right: none; }
+.cal-dia--fora { background: var(--offwhite); opacity: 0.6; }
+.cal-dia--hoje { background: var(--dourado-light); }
+.cal-dia--hoje .cal-dia-num { color: var(--dourado); }
+
+.cal-dia-num {
+  font-family: var(--font-titulo);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.cal-dia--hoje .cal-dia-num {
+  background: var(--dourado);
+  color: var(--branco);
+}
+
+.cal-eventos-mini { display: flex; flex-direction: column; gap: 2px; }
+
+.cal-evento {
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity var(--trans);
+}
+.cal-evento:hover { opacity: 0.8; }
+.cal-evento--visita  { background: rgba(197,160,74,0.20);  color: #6B4E0A; }
+.cal-evento--reuniao { background: rgba(0,105,92,0.15);    color: #004D40; }
+.cal-evento--entrega { background: rgba(46,125,50,0.15);   color: #1B5E20; }
+
+.cal-mais {
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 1px 5px;
+  font-style: italic;
+}
+
+/* ── Calendário Semana ── */
+.cal-semana {
+  background: var(--branco);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--grafite-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.cal-semana-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--offwhite);
+  border-bottom: 2px solid var(--grafite-border);
+}
+
+.cal-semana-diacol {
+  padding: 12px 8px;
+  text-align: center;
+  border-right: 1px solid var(--grafite-border);
+}
+.cal-semana-diacol:last-child { border-right: none; }
+.cal-semana-diacol--hoje { background: var(--dourado-light); }
+
+.cal-semana-diasem {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.cal-semana-dianum {
+  font-family: var(--font-titulo);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+.cal-semana-dianum--hoje {
+  background: var(--dourado);
+  color: var(--branco);
+}
+
+.cal-semana-corpo {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  min-height: 200px;
+}
+
+.cal-semana-col {
+  padding: 8px 6px;
+  border-right: 1px solid var(--grafite-border);
+  cursor: pointer;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background var(--trans);
+}
+.cal-semana-col:last-child { border-right: none; }
+.cal-semana-col:hover { background: var(--offwhite); }
+.cal-semana-col--hoje { background: rgba(197,160,74,0.06); }
+
+.cal-semana-vazio {
+  color: var(--text-muted);
+  font-size: 18px;
+  margin: auto;
+  opacity: 0.3;
+}
+
+.cal-evento-hora {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.7;
+  margin-bottom: 1px;
+}
+
+/* ── Lista / Dia ── */
+.agenda-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 12px;
+  text-align: center;
+  background: var(--branco);
+  border-radius: var(--r-lg);
+  border: 2px dashed var(--grafite-border);
+  padding: 48px 32px;
+}
+.agenda-vazio-icon { font-size: 48px; opacity: 0.3; }
+.agenda-vazio p { font-size: 14px; color: var(--text-muted); }
+
+.agenda-lista { display: flex; flex-direction: column; gap: 6px; }
+
+.agenda-grupo { margin-bottom: 8px; }
+
+.agenda-grupo-titulo {
+  font-family: var(--font-titulo);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 6px 4px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--grafite-border);
+}
+.agenda-grupo-titulo--hoje {
+  color: var(--dourado);
+  border-bottom-color: var(--dourado-border);
+}
+
+.agenda-card {
+  display: flex;
+  background: var(--branco);
+  border-radius: var(--r);
+  border: 1px solid var(--grafite-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow var(--trans), border-color var(--trans);
+}
+.agenda-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--dourado-border);
+}
+.agenda-card--cancelado { opacity: 0.55; }
+
+.agenda-card-tipo-bar {
+  width: 4px;
+  flex-shrink: 0;
+}
+.agenda-card--visita  .agenda-card-tipo-bar { background: var(--dourado); }
+.agenda-card--reuniao .agenda-card-tipo-bar { background: #00695C; }
+.agenda-card--entrega .agenda-card-tipo-bar { background: var(--verde); }
+
+.agenda-card-body { flex: 1; padding: 14px 16px; min-width: 0; }
+
+.agenda-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.agenda-card-info { flex: 1; min-width: 0; }
+
+.agenda-card-titulo {
+  font-family: var(--font-titulo);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.agenda-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.agenda-hora { font-weight: 500; color: var(--text-secondary); }
+.agenda-cliente { color: var(--text-secondary); }
+.agenda-local {}
+
+.agenda-card-badges {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.agenda-card-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+}
+
+.agenda-card-actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* Badges de tipo */
+.badge-tipo--visita  { background: rgba(197,160,74,0.15); color: #6B4E0A; border: 1px solid rgba(197,160,74,0.3); }
+.badge-tipo--reuniao { background: rgba(0,105,92,0.12);   color: #004D40; border: 1px solid rgba(0,105,92,0.25); }
+.badge-tipo--entrega { background: rgba(46,125,50,0.12);  color: #1B5E20; border: 1px solid rgba(46,125,50,0.25); }
+
+/* Dashboard — próximos compromissos */
+.dashboard-grid-bottom {
+  margin-top: 20px;
+}
+
+.proximos-comp-lista { display: flex; flex-direction: column; gap: 8px; }
+
+.proximos-comp-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r);
+  background: var(--offwhite);
+  border-left: 3px solid var(--grafite-border);
+  transition: border-color var(--trans);
+  cursor: pointer;
+}
+.proximos-comp-item:hover { border-left-color: var(--dourado); }
+.proximos-comp-item--visita  { border-left-color: var(--dourado); }
+.proximos-comp-item--reuniao { border-left-color: #00695C; }
+.proximos-comp-item--entrega { border-left-color: var(--verde); }
+
+.proximos-comp-data {
+  min-width: 52px;
+  text-align: center;
+}
+.proximos-comp-dia {
+  font-family: var(--font-titulo);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.proximos-comp-mes {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.proximos-comp-info { flex: 1; min-width: 0; }
+.proximos-comp-titulo {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.proximos-comp-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── Kanban ──────────────────────────────────── */
+.kanban-filtros {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.kanban-total {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: auto;
+  font-weight: 500;
+}
+
+.kanban-board {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 20px;
+  align-items: flex-start;
+}
+.kanban-board::-webkit-scrollbar { height: 6px; }
+.kanban-board::-webkit-scrollbar-track { background: transparent; }
+.kanban-board::-webkit-scrollbar-thumb { background: var(--grafite-border); border-radius: 3px; }
+
+.kanban-col {
+  flex: 0 0 272px;
+  background: var(--offwhite);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--grafite-border);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 230px);
+  border-top-width: 3px;
+}
+
+.kanban-col-header {
+  padding: 11px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--branco);
+  border-bottom: 1px solid var(--grafite-border);
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+.kanban-col-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-titulo);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.kanban-col-icon { font-size: 14px; opacity: 0.7; }
+
+.kanban-col-acoes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kanban-col-count {
+  background: var(--grafite-light);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-family: var(--font-titulo);
+}
+
+.kanban-col-add {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--grafite-border);
+  border-radius: 50%;
+  background: var(--branco);
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--trans);
+  padding: 0;
+}
+.kanban-col-add:hover {
+  background: var(--dourado);
+  border-color: var(--dourado);
+  color: var(--branco);
+}
+
+.kanban-col-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 80px;
+}
+.kanban-col-body::-webkit-scrollbar { width: 4px; }
+.kanban-col-body::-webkit-scrollbar-thumb { background: var(--grafite-border); border-radius: 2px; }
+
+.kanban-vazio {
+  text-align: center;
+  padding: 20px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  border: 2px dashed var(--grafite-border);
+  border-radius: var(--r);
+  margin: 4px 0;
+  pointer-events: none;
+}
+
+/* Cards */
+.kanban-card {
+  background: var(--branco);
+  border-radius: var(--r);
+  border: 1px solid var(--grafite-border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  gap: 0;
+  transition: box-shadow var(--trans), border-color var(--trans);
+  cursor: default;
+}
+.kanban-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--dourado-border);
+}
+.kanban-card--atrasado {
+  border-color: rgba(198,40,40,0.45);
+  background: rgba(198,40,40,0.03);
+}
+@keyframes pulso-dourado {
+  0%, 100% { box-shadow: var(--shadow-sm); }
+  50% { box-shadow: 0 0 0 3px rgba(197,160,74,0.3), var(--shadow-sm); }
+}
+.kanban-card--urgente {
+  animation: pulso-dourado 2.2s ease-in-out infinite;
+  border-color: var(--dourado-border);
+}
+.kanban-card--ghost {
+  opacity: 0.35;
+  background: var(--dourado-light);
+}
+
+.kanban-card-drag {
+  width: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: var(--grafite-border);
+  cursor: grab;
+  flex-shrink: 0;
+  border-right: 1px solid var(--grafite-border);
+  border-radius: var(--r) 0 0 var(--r);
+  background: var(--offwhite);
+  transition: color var(--trans), background var(--trans);
+  user-select: none;
+}
+.kanban-card-drag:hover {
+  color: var(--grafite);
+  background: var(--grafite-light);
+}
+.kanban-card-drag:active { cursor: grabbing; }
+
+.kanban-card-corpo {
+  flex: 1;
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.kanban-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.kanban-card-titulo {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  cursor: pointer;
+  flex: 1;
+}
+.kanban-card-titulo:hover { color: var(--dourado); }
+
+.kanban-card-del {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  font-size: 14px;
+  line-height: 1;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+  transition: all var(--trans);
+}
+.kanban-card:hover .kanban-card-del { opacity: 1; }
+.kanban-card-del:hover { background: var(--vermelho-bg); color: var(--vermelho); }
+
+.kanban-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 7px;
+}
+
+.kanban-meta-item {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kanban-card-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.kanban-prazo {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: var(--offwhite);
+  border: 1px solid var(--grafite-border);
+  color: var(--text-muted);
+}
+.prazo--atrasado {
+  background: rgba(198,40,40,0.10);
+  border-color: rgba(198,40,40,0.3);
+  color: var(--vermelho);
+}
+.prazo--urgente {
+  background: var(--dourado-light);
+  border-color: var(--dourado-border);
+  color: #7A5F1A;
+}
+
+.kanban-chk-info {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.kanban-progress {
+  height: 3px;
+  background: var(--grafite-border);
+  border-radius: 2px;
+  margin-top: 7px;
+  overflow: hidden;
+}
+.kanban-progress-bar {
+  height: 100%;
+  background: var(--verde);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Checklist no modal */
+.checklist-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: var(--offwhite);
+  border-radius: var(--r);
+  border: 1px solid var(--grafite-border);
+}
+
+.checklist-check { flex-shrink: 0; accent-color: var(--verde); cursor: pointer; }
+
+.checklist-texto {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.checklist-texto--feito {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.checklist-del {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color var(--trans);
+}
+.checklist-del:hover { color: var(--vermelho); }
+
+.checklist-novo {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.checklist-vazio {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 6px 0;
+  text-align: center;
+}
+
+/* ── Financeiro ──────────────────────────────── */
+.fin-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--grafite-border);
+  padding-bottom: 0;
+}
+
+.fin-tab {
+  padding: 9px 20px;
+  font-family: var(--font-titulo);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color var(--trans), border-color var(--trans);
+  border-radius: var(--r) var(--r) 0 0;
+}
+.fin-tab:hover { color: var(--text-primary); }
+.fin-tab--ativo {
+  color: var(--dourado);
+  border-bottom-color: var(--dourado);
+  background: var(--dourado-light);
+}
+
+/* KPI row (3 cards lado a lado) */
+.fin-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.fin-kpi {
+  background: var(--branco);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--grafite-border);
+  box-shadow: var(--shadow-sm);
+  padding: 16px 20px;
+}
+.fin-kpi--alerta { border-color: rgba(198,40,40,0.25); }
+.fin-kpi--verde  { border-color: rgba(46,125,50,0.25); }
+
+.fin-kpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.fin-kpi-valor {
+  font-family: var(--font-titulo);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.fin-kpi-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Lista de lançamentos */
+.fin-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fin-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--branco);
+  border-radius: var(--r);
+  border: 1px solid var(--grafite-border);
+  border-left-width: 4px;
+  padding: 12px 16px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--trans);
+}
+.fin-item:hover { box-shadow: var(--shadow); }
+.fin-item--pendente { border-left-color: var(--dourado); }
+.fin-item--pago     { border-left-color: var(--verde); opacity: 0.85; }
+.fin-item--atrasado { border-left-color: var(--vermelho); }
+
+.fin-item-valor {
+  font-family: var(--font-titulo);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+  min-width: 110px;
+  white-space: nowrap;
+}
+
+.fin-item-info { flex: 1; min-width: 0; }
+
+.fin-item-desc {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.fin-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.fin-item-badges { flex-shrink: 0; }
+
+.fin-item-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Histórico — filtros */
+.fin-hist-filtros {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--branco);
+  border: 1px solid var(--grafite-border);
+  border-radius: var(--r-lg);
+  padding: 12px 16px;
+  margin-bottom: 4px;
+}
+
+.fin-total-hist {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  .fin-kpi-row { grid-template-columns: 1fr 1fr; }
+  .fin-item { flex-wrap: wrap; }
+  .fin-item-valor { min-width: auto; }
+}
+
+/* ── Em Construção ─────────────────────────── */
+.em-construcao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  gap: 16px;
+  background: var(--branco);
+  border-radius: var(--r-xl);
+  border: 2px dashed var(--grafite-border);
+  padding: 48px 32px;
+}
+
+.em-construcao-icon {
+  font-size: 56px;
+  opacity: 0.45;
+}
+
+.em-construcao h2 {
+  font-family: var(--font-titulo);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.em-construcao p {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 420px;
+}
+
+.em-construcao-features {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 2;
+  background: var(--offwhite);
+  padding: 16px 24px;
+  border-radius: var(--r);
+  border-left: 3px solid var(--dourado);
+  text-align: left;
+}
+
+/* ── ARTs ────────────────────────────────────── */
+.art-numero {
+  font-family: var(--font-titulo);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--dourado);
+  letter-spacing: 0.04em;
+}
+
+.td-wrap {
+  max-width: 220px;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+/* ── Documentos ──────────────────────────────── */
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+.doc-card {
+  background: var(--branco);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--grafite-border);
+  box-shadow: var(--shadow-sm);
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: box-shadow var(--trans), border-color var(--trans);
+}
+
+.doc-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--dourado-border);
+}
+
+.doc-card-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.doc-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.doc-card-nome {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.doc-card-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.doc-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.doc-meta-cliente {
+  color: var(--dourado);
+  font-weight: 500;
+}
+
+.doc-card-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.import-preview-info {
+  background: var(--dourado-light);
+  border: 1px solid var(--dourado-border);
+  border-radius: var(--r);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* ── Sidebar extras ───────────────────────────── */
+.btn-tema {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  margin-bottom: 8px;
+  background: transparent;
+  border: 1px solid rgba(197, 160, 74, 0.20);
+  border-radius: var(--r);
+  color: rgba(248, 246, 242, 0.55);
+  font-family: var(--font-corpo);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--trans), color var(--trans), border-color var(--trans);
+}
+
+.btn-tema:hover {
+  background: var(--sidebar-hover);
+  color: var(--dourado);
+  border-color: var(--dourado-border);
+}
+
+/* ── Clientes — ações do header ───────────────── */
+.page-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .doc-grid { grid-template-columns: 1fr; }
+  .page-header-actions { flex-direction: column; align-items: flex-end; }
+}

@@ -1,0 +1,23 @@
+# Dependências
+node_modules/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Configurações locais (não committar)
+config.local.json
+
+# Backups exportados (ficam na máquina do usuário)
+backup_*.json
+backup_*.xlsx
+
+# Logs
+*.log

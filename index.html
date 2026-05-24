@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal JOTEC Soluções</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1A1A1A">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JOTEC">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <link rel="stylesheet" href="css/tokens.css?v=4">
+  <link rel="stylesheet" href="css/base.css?v=4">
+  <link rel="stylesheet" href="css/components.css?v=4">
+  <link rel="stylesheet" href="css/modules.css?v=4">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Sidebar ─────────────────────────────── -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <img src="assets/logo.png" alt="JOTEC Soluções" class="sidebar-logo">
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#/dashboard" class="nav-item" data-route="dashboard">
+        <span class="nav-icon">◈</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="#/clientes" class="nav-item" data-route="clientes">
+        <span class="nav-icon">◉</span>
+        <span>Clientes</span>
+      </a>
+      <a href="#/servicos" class="nav-item" data-route="servicos">
+        <span class="nav-icon">◎</span>
+        <span>Serviços</span>
+      </a>
+      <a href="#/orcamentos" class="nav-item" data-route="orcamentos">
+        <span class="nav-icon">◷</span>
+        <span>Orçamentos</span>
+      </a>
+      <a href="#/agenda" class="nav-item" data-route="agenda">
+        <span class="nav-icon">◻</span>
+        <span>Agenda</span>
+      </a>
+      <a href="#/kanban" class="nav-item" data-route="kanban">
+        <span class="nav-icon">▦</span>
+        <span>Kanban</span>
+      </a>
+      <a href="#/financeiro" class="nav-item" data-route="financeiro">
+        <span class="nav-icon">◈</span>
+        <span>Financeiro</span>
+      </a>
+      <a href="#/arts" class="nav-item" data-route="arts">
+        <span class="nav-icon">◈</span>
+        <span>ARTs</span>
+      </a>
+      <a href="#/documentos" class="nav-item" data-route="documentos">
+        <span class="nav-icon">◧</span>
+        <span>Documentos</span>
+      </a>
+      <a href="#/prospeccao" class="nav-item" data-route="prospeccao">
+        <span class="nav-icon">🎯</span>
+        <span>Prospecção</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button id="btn-tema" class="btn-tema">◑ Tema Escuro</button>
+      <button id="btn-backup" class="btn-backup">
+        <span>▲</span> Exportar Backup
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Área principal ───────────────────────── -->
+  <div id="main">
+
+    <header id="header">
+      <div class="header-left">
+        <button id="btn-menu" class="btn-hamburger" aria-label="Menu">☰</button>
+        <span id="breadcrumb" class="breadcrumb">Dashboard</span>
+      </div>
+      <div class="header-right">
+        <div class="search-wrapper">
+          <input type="text" id="busca-global" class="busca-global" placeholder="Buscar clientes... (Ctrl+K)" autocomplete="off">
+        </div>
+        <span id="header-data" class="header-data"></span>
+      </div>
+    </header>
+
+    <main id="content">
+      <!-- Conteúdo carregado via JS -->
+    </main>
+
+  </div>
+</div>
+
+<!-- ── Modal principal ─────────────────────── -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div id="modal-box" class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-title"></h3>
+      <button class="modal-close" id="modal-close">×</button>
+    </div>
+    <div id="modal-body" class="modal-body"></div>
+  </div>
+</div>
+
+<!-- ── Confirm dialog ─────────────────────── -->
+<div id="confirm-overlay" class="modal-overlay hidden">
+  <div class="modal-box modal-box--sm">
+    <div class="modal-header">
+      <h3 id="confirm-title">Confirmar</h3>
+    </div>
+    <div id="confirm-body" class="modal-body"></div>
+    <div class="modal-footer">
+      <button id="confirm-cancel" class="btn btn--ghost">Cancelar</button>
+      <button id="confirm-ok" class="btn btn--danger">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast container ─────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ── Sidebar overlay mobile ──────────────── -->
+<div id="sidebar-overlay"></div>
+
+<!-- ── Bibliotecas ─────────────────────────── -->
+<script src="libs/chart.min.js"></script>
+<script src="libs/dayjs.min.js"></script>
+<script src="libs/sortable.min.js"></script>
+<script src="libs/html2canvas.min.js"></script>
+<script src="libs/jspdf.umd.min.js"></script>
+<script src="libs/jspdf.plugin.autotable.min.js"></script>
+<script src="libs/xlsx.full.min.js"></script>
+
+<!-- ── App JS ─────────────────────────────── -->
+<script src="js/db.js"></script>
+<script src="js/services/sheets_api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/backup.js"></script>
+<script src="js/modules/dashboard.js"></script>
+<script src="js/modules/clientes.js"></script>
+<script src="js/modules/servicos.js"></script>
+<script src="js/modules/orcamentos.js"></script>
+<script src="js/modules/agenda.js"></script>
+<script src="js/modules/kanban.js"></script>
+<script src="js/modules/financeiro.js"></script>
+<script src="js/modules/arts.js"></script>
+<script src="js/modules/documentos.js"></script>
+<script src="js/modules/prospeccao.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

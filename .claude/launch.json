@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "portal-jotec",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "7373", "--directory", "C:\\Users\\jpoli\\OneDrive\\Área de Trabalho\\CLAUDE_JOTEC\\JOTEC_Portal"],
+      "port": 7373
+    }
+  ]
+}
