@@ -667,6 +667,24 @@ const Orcamentos = (() => {
     });
   }
 
+  // ── Helpers ───────────────────────────────────
+  function _getLogoBase64() {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth;
+          c.height = img.naturalHeight;
+          c.getContext('2d').drawImage(img, 0, 0);
+          resolve(c.toDataURL('image/png'));
+        } catch (_) { resolve(null); }
+      };
+      img.onerror = () => resolve(null);
+      img.src = 'assets/logo.png';
+    });
+  }
+
   // ── Export PDF ────────────────────────────────
   async function exportarPDF(id) {
     const orc = _orcamentos.find(o => o.id === id) || await DB.get('orcamentos', id);
@@ -686,23 +704,21 @@ const Orcamentos = (() => {
     doc.setFillColor(...PRETO);
     doc.rect(0, 0, 210, 30, 'F');
 
-    // Logo (se disponível)
-    try {
-      const logoEl = document.querySelector('.sidebar-logo');
-      if (logoEl && logoEl.complete && logoEl.naturalWidth > 0) {
-        doc.addImage(logoEl, 'PNG', 13, 4, 18, 18);
-      }
-    } catch (_) {}
+    // Logo
+    const logoB64 = await _getLogoBase64();
+    if (logoB64) {
+      doc.addImage(logoB64, 'PNG', 12, 3, 24, 24);
+    }
 
     // Nome da empresa
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
     doc.setTextColor(...DOURADO);
-    doc.text('JOTEC Soluções', 35, 12);
+    doc.text('JOTEC Soluções', 40, 12);
     doc.setFontSize(8);
     doc.setTextColor(...CINZA);
-    doc.text('Engenharia · Segurança · Conformidade · Soluções', 35, 18);
-    doc.text('CREA-SP · Região Metropolitana de Campinas', 35, 23);
+    doc.text('Engenharia · Segurança · Conformidade · Soluções', 40, 18);
+    doc.text('CREA-SP · Região Metropolitana de Campinas', 40, 23);
 
     // Número do orçamento
     doc.setFont('helvetica', 'bold');
@@ -803,7 +819,7 @@ const Orcamentos = (() => {
     // Totais
     const subtotal = (orc.itens || []).reduce((s, i) => s + i.qtd * i.valor_unit, 0);
     const totalRows = [['Subtotal', UI.formatBRL(subtotal)]];
-    if (orc.desconto > 0) totalRows.push(['Desconto', `− ${UI.formatBRL(orc.desconto)}`]);
+    if (orc.desconto > 0) totalRows.push(['Desconto', `- ${UI.formatBRL(orc.desconto)}`]);
     totalRows.push(['TOTAL', UI.formatBRL(orc.total)]);
 
     doc.autoTable({
