@@ -21,7 +21,7 @@
 }
 .kpi-card:hover {
   box-shadow: var(--shadow);
-  border-color: var(--dourado-border);
+  border-color: var(--verde-border);
   transform: translateY(-1px);
 }
 .kpi-card--alert {
@@ -38,7 +38,7 @@
   font-size: 20px;
   flex-shrink: 0;
 }
-.kpi-icon--dourado { background: var(--dourado-light); }
+.kpi-icon--verde-reverse { background: var(--verde-light); }
 .kpi-icon--preto   { background: var(--grafite-light); }
 .kpi-icon--azul    { background: var(--azul-bg); }
 .kpi-icon--verde   { background: var(--verde-bg); }
@@ -149,7 +149,7 @@
 }
 .servico-card:hover {
   box-shadow: var(--shadow);
-  border-color: var(--dourado-border);
+  border-color: var(--verde-border);
 }
 
 .servico-card-header {
@@ -204,7 +204,7 @@
   gap: 3px;
 }
 .preco-item--ideal {
-  background: var(--dourado-light);
+  background: var(--verde-light);
   position: relative;
 }
 
@@ -223,7 +223,7 @@
   font-weight: 700;
   color: var(--text-primary);
 }
-.preco-val--dourado { color: #7A5F1A; }
+.preco-val--verde-reverse { color: #7A5F1A; }
 
 /* ── Orçamentos ──────────────────────────────── */
 .filtros-bar {
@@ -241,7 +241,7 @@
   transition: border-color var(--trans);
 }
 .orc-item:hover {
-  border-color: var(--dourado-border);
+  border-color: var(--verde-border);
 }
 
 .pag-btn--active {
@@ -324,8 +324,8 @@
 .cal-dia:hover { background: var(--offwhite); }
 .cal-dia:nth-child(7n) { border-right: none; }
 .cal-dia--fora { background: var(--offwhite); opacity: 0.6; }
-.cal-dia--hoje { background: var(--dourado-light); }
-.cal-dia--hoje .cal-dia-num { color: var(--dourado); }
+.cal-dia--hoje { background: var(--verde-light); }
+.cal-dia--hoje .cal-dia-num { color: var(--verde-reverse); }
 
 .cal-dia-num {
   font-family: var(--font-titulo);
@@ -341,7 +341,7 @@
   border-radius: 50%;
 }
 .cal-dia--hoje .cal-dia-num {
-  background: var(--dourado);
+  background: var(--verde-reverse);
   color: var(--branco);
 }
 
@@ -392,7 +392,7 @@
   border-right: 1px solid var(--grafite-border);
 }
 .cal-semana-diacol:last-child { border-right: none; }
-.cal-semana-diacol--hoje { background: var(--dourado-light); }
+.cal-semana-diacol--hoje { background: var(--verde-light); }
 
 .cal-semana-diasem {
   font-size: 11px;
@@ -417,7 +417,7 @@
   margin: 0 auto;
 }
 .cal-semana-dianum--hoje {
-  background: var(--dourado);
+  background: var(--verde-reverse);
   color: var(--branco);
 }
 
@@ -489,8 +489,8 @@
   border-bottom: 1px solid var(--grafite-border);
 }
 .agenda-grupo-titulo--hoje {
-  color: var(--dourado);
-  border-bottom-color: var(--dourado-border);
+  color: var(--verde-reverse);
+  border-bottom-color: var(--verde-border);
 }
 
 .agenda-card {
@@ -504,7 +504,7 @@
 }
 .agenda-card:hover {
   box-shadow: var(--shadow);
-  border-color: var(--dourado-border);
+  border-color: var(--verde-border);
 }
 .agenda-card--cancelado { opacity: 0.55; }
 
@@ -512,7 +512,7 @@
   width: 4px;
   flex-shrink: 0;
 }
-.agenda-card--visita  .agenda-card-tipo-bar { background: var(--dourado); }
+.agenda-card--visita  .agenda-card-tipo-bar { background: var(--verde-reverse); }
 .agenda-card--reuniao .agenda-card-tipo-bar { background: #00695C; }
 .agenda-card--entrega .agenda-card-tipo-bar { background: var(--verde); }
 
@@ -591,8 +591,8 @@
   transition: border-color var(--trans);
   cursor: pointer;
 }
-.proximos-comp-item:hover { border-left-color: var(--dourado); }
-.proximos-comp-item--visita  { border-left-color: var(--dourado); }
+.proximos-comp-item:hover { border-left-color: var(--verde-reverse); }
+.proximos-comp-item--visita  { border-left-color: var(--verde-reverse); }
 .proximos-comp-item--reuniao { border-left-color: #00695C; }
 .proximos-comp-item--entrega { border-left-color: var(--verde); }
 
@@ -722,8 +722,8 @@
   padding: 0;
 }
 .kanban-col-add:hover {
-  background: var(--dourado);
-  border-color: var(--dourado);
+  background: var(--verde-reverse);
+  border-color: var(--verde-reverse);
   color: var(--branco);
 }
 
@@ -763,7 +763,7 @@
 }
 .kanban-card:hover {
   box-shadow: var(--shadow);
-  border-color: var(--dourado-border);
+  border-color: var(--verde-border);
 }
 .kanban-card--atrasado {
   border-color: rgba(198,40,40,0.45);
@@ -775,11 +775,11 @@
 }
 .kanban-card--urgente {
   animation: pulso-dourado 2.2s ease-in-out infinite;
-  border-color: var(--dourado-border);
+  border-color: var(--verde-border);
 }
 .kanban-card--ghost {
   opacity: 0.35;
-  background: var(--dourado-light);
+  background: var(--verde-light);
 }
 
 .kanban-card-drag {
@@ -825,7 +825,7 @@
   cursor: pointer;
   flex: 1;
 }
-.kanban-card-titulo:hover { color: var(--dourado); }
+.kanban-card-titulo:hover { color: var(--verde-reverse); }
 
 .kanban-card-del {
   flex-shrink: 0;
@@ -885,8 +885,8 @@
   color: var(--vermelho);
 }
 .prazo--urgente {
-  background: var(--dourado-light);
-  border-color: var(--dourado-border);
+  background: var(--verde-light);
+  border-color: var(--verde-border);
   color: #7A5F1A;
 }
 
@@ -993,9 +993,9 @@
 }
 .fin-tab:hover { color: var(--text-primary); }
 .fin-tab--ativo {
-  color: var(--dourado);
-  border-bottom-color: var(--dourado);
-  background: var(--dourado-light);
+  color: var(--verde-reverse);
+  border-bottom-color: var(--verde-reverse);
+  background: var(--verde-light);
 }
 
 /* KPI row (3 cards lado a lado) */
@@ -1057,7 +1057,7 @@
   transition: box-shadow var(--trans);
 }
 .fin-item:hover { box-shadow: var(--shadow); }
-.fin-item--pendente { border-left-color: var(--dourado); }
+.fin-item--pendente { border-left-color: var(--verde-reverse); }
 .fin-item--pago     { border-left-color: var(--verde); opacity: 0.85; }
 .fin-item--atrasado { border-left-color: var(--vermelho); }
 
@@ -1162,7 +1162,7 @@
   background: var(--offwhite);
   padding: 16px 24px;
   border-radius: var(--r);
-  border-left: 3px solid var(--dourado);
+  border-left: 3px solid var(--verde-reverse);
   text-align: left;
 }
 
@@ -1171,7 +1171,7 @@
   font-family: var(--font-titulo);
   font-weight: 600;
   font-size: 13px;
-  color: var(--dourado);
+  color: var(--verde-reverse);
   letter-spacing: 0.04em;
 }
 
@@ -1202,7 +1202,7 @@
 
 .doc-card:hover {
   box-shadow: var(--shadow);
-  border-color: var(--dourado-border);
+  border-color: var(--verde-border);
 }
 
 .doc-card-icon {
@@ -1243,7 +1243,7 @@
 }
 
 .doc-meta-cliente {
-  color: var(--dourado);
+  color: var(--verde-reverse);
   font-weight: 500;
 }
 
@@ -1254,8 +1254,8 @@
 }
 
 .import-preview-info {
-  background: var(--dourado-light);
-  border: 1px solid var(--dourado-border);
+  background: var(--verde-light);
+  border: 1px solid var(--verde-border);
   border-radius: var(--r);
   padding: 12px 16px;
   font-size: 13px;
@@ -1282,8 +1282,8 @@
 
 .btn-tema:hover {
   background: var(--sidebar-hover);
-  color: var(--dourado);
-  border-color: var(--dourado-border);
+  color: var(--verde-reverse);
+  border-color: var(--verde-border);
 }
 
 /* ── Clientes — ações do header ───────────────── */

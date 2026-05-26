@@ -67,7 +67,7 @@ const Clientes = (() => {
         <div class="empty-state">
           <div class="empty-icon">◉</div>
           <h3>${_todos.length ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado ainda'}</h3>
-          <p>${_todos.length ? 'Tente outros termos ou remova os filtros.' : 'Comece cadastrando o primeiro cliente da JOTEC.'}</p>
+          <p>${_todos.length ? 'Tente outros termos ou remova os filtros.' : 'Comece cadastrando o primeiro cliente da Reverse Engenharia.'}</p>
           ${!_todos.length ? '<button class="btn btn--primary" id="btn-empty-novo">+ Cadastrar Primeiro Cliente</button>' : ''}
         </div>`;
       if (!_todos.length) {

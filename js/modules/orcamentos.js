@@ -546,10 +546,10 @@ const Orcamentos = (() => {
         <div style="display:flex;align-items:center;justify-content:space-between;
           padding-bottom:18px;border-bottom:3px solid #C5A04A;margin-bottom:22px">
           <div style="display:flex;align-items:center;gap:14px">
-            <img src="assets/logo.png" alt="JOTEC" style="height:48px;width:auto">
+            <img src="assets/logo.png" alt="Reverse Engenharia" style="height:48px;width:auto">
             <div>
               <div style="font-family:var(--font-titulo);font-size:10px;font-weight:700;
-                color:#888;letter-spacing:.1em;text-transform:uppercase">JOTEC Soluções</div>
+                color:#888;letter-spacing:.1em;text-transform:uppercase">Reverse Engenharia</div>
               <div style="font-size:11px;color:#888;margin-top:2px">
                 Engenharia · Segurança · Conformidade · Soluções
               </div>
@@ -641,7 +641,7 @@ const Orcamentos = (() => {
         <!-- Rodapé -->
         <div style="border-top:1px solid #ddd;padding-top:12px;text-align:center">
           <div style="font-size:10px;color:#aaa">
-            JOTEC Soluções — Engenharia Mecânica · CREA-SP · Região Metropolitana de Campinas
+            Reverse Engenharia — Engenharia Mecânica · CREA-SP · Região Metropolitana de Campinas
           </div>
         </div>
       </div>
@@ -714,7 +714,7 @@ const Orcamentos = (() => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
     doc.setTextColor(...DOURADO);
-    doc.text('JOTEC Soluções', 40, 12);
+    doc.text('Reverse Engenharia', 40, 12);
     doc.setFontSize(8);
     doc.setTextColor(...CINZA);
     doc.text('Engenharia · Segurança · Conformidade · Soluções', 40, 18);
@@ -867,7 +867,7 @@ const Orcamentos = (() => {
     doc.setFontSize(7);
     doc.setTextColor(...CINZA);
     doc.text(
-      'JOTEC Soluções — Engenharia Mecânica · CREA-SP · Região Metropolitana de Campinas',
+      'Reverse Engenharia — Engenharia Mecânica · CREA-SP · Região Metropolitana de Campinas',
       105, pH - 5, { align: 'center' }
     );
 
@@ -885,7 +885,7 @@ const Orcamentos = (() => {
     const subtotal = (orc.itens||[]).reduce((s,i) => s + i.qtd*i.valor_unit, 0);
 
     const dados = [
-      ['JOTEC Soluções — Orçamento'],
+      ['Reverse Engenharia — Orçamento'],
       [],
       ['Número',    orc.numero],
       ['Cliente',   cli ? cli.nome : '—'],

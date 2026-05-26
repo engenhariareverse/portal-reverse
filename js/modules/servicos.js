@@ -56,7 +56,7 @@ const Servicos = (() => {
         <div class="empty-state">
           <div class="empty-icon">◎</div>
           <h3>${_todos.length ? 'Nenhum serviço encontrado' : 'Nenhum serviço cadastrado'}</h3>
-          <p>${_todos.length ? 'Tente outros termos.' : 'Cadastre os serviços da JOTEC Soluções.'}</p>
+          <p>${_todos.length ? 'Tente outros termos.' : 'Cadastre os serviços da Reverse Engenharia.'}</p>
         </div>`;
       return;
     }

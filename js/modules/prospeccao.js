@@ -615,7 +615,7 @@ const Prospeccao = (() => {
     const email   = btn.dataset.email;
     const empresa = btn.dataset.empresa || '';
     await _addHistorico(id, 'Email enviado');
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent('JOTEC Soluções — ' + empresa)}`;
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent('Reverse Engenharia — ' + empresa)}`;
   }
 
   async function _acaoLigou(id) {
@@ -873,7 +873,7 @@ const Prospeccao = (() => {
     })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Prospecção');
-    XLSX.writeFile(wb, 'Prospeccao_JOTEC.xlsx');
+    XLSX.writeFile(wb, 'Prospeccao_Reverse Engenharia.xlsx');
     UI.showToast('Excel exportado!', 'success');
   }
 
@@ -884,7 +884,7 @@ const Prospeccao = (() => {
     const csv  = [cols.join(','), ...rows].join('\n');
     const a    = Object.assign(document.createElement('a'), {
       href:     URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })),
-      download: 'Prospeccao_JOTEC.csv',
+      download: 'Prospeccao_Reverse Engenharia.csv',
     });
     a.click();
     URL.revokeObjectURL(a.href);

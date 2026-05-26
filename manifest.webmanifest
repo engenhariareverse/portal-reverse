@@ -1,12 +1,12 @@
 {
-  "name": "Portal JOTEC Soluções",
-  "short_name": "JOTEC",
-  "description": "Portal de gestão JOTEC Soluções — Engenharia · Segurança · Conformidade",
+  "name": "Portal Reverse Engenharia",
+  "short_name": "Reverse Engenharia",
+  "description": "Portal de gestão Reverse Engenharia — Engenharia · Segurança · Conformidade",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#1A1A1A",
-  "background_color": "#F8F6F2",
+  "theme_color": "#3DB53C",
+  "background_color": "#F5F7F5",
   "lang": "pt-BR",
   "icons": [
     {

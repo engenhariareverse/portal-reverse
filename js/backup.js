@@ -5,7 +5,7 @@ const BACKUP = (() => {
     try {
       const data = {
         version: 2,
-        app: 'Portal JOTEC Soluções',
+        app: 'Portal Reverse Engenharia',
         exportedAt: new Date().toISOString(),
         stores: {},
       };
@@ -20,7 +20,7 @@ const BACKUP = (() => {
       const a = document.createElement('a');
       const date = new Date().toISOString().slice(0, 10);
       a.href = url;
-      a.download = `backup_jotec_${date}.json`;
+      a.download = `backup_reverse_${date}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

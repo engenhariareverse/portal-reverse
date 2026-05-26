@@ -1,5 +1,5 @@
 const DB = (() => {
-  const NAME = 'jotec_portal';
+  const NAME = 'reverse_portal';
   const VERSION = 3;
   let _db = null;
 

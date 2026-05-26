@@ -81,13 +81,13 @@ html, body {
 
 .nav-item:hover {
   background: var(--sidebar-hover);
-  color: var(--dourado);
+  color: var(--verde-reverse);
 }
 
 .nav-item.active {
-  background: var(--dourado-light);
-  color: var(--dourado);
-  border-left: 3px solid var(--dourado);
+  background: var(--verde-light);
+  color: var(--verde-reverse);
+  border-left: 3px solid var(--verde-reverse);
   padding-left: 17px;
 }
 
@@ -213,7 +213,7 @@ html, body {
 }
 
 /* Links */
-a { color: var(--dourado); text-decoration: none; }
+a { color: var(--verde-reverse); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 /* Scrollbar */

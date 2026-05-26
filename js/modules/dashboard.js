@@ -41,7 +41,7 @@ const Dashboard = (() => {
       <div class="page-header">
         <div>
           <h1 class="page-title">Dashboard</h1>
-          <p class="page-subtitle">Visão geral — JOTEC Soluções · Engenharia · Segurança · Conformidade</p>
+          <p class="page-subtitle">Visão geral — Reverse Engenharia · Engenharia · Segurança · Conformidade</p>
         </div>
       </div>
 

@@ -544,7 +544,7 @@ const Financeiro = (() => {
     doc.setFont('helvetica','bold');
     doc.setFontSize(14);
     doc.setTextColor(197,160,74);
-    doc.text('JOTEC Soluções', 14, 10);
+    doc.text('Reverse Engenharia', 14, 10);
     doc.setFontSize(9);
     doc.setTextColor(200,200,200);
     doc.text('Engenharia · Segurança · Conformidade', 14, 16);

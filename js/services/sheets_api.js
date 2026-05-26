@@ -1,5 +1,5 @@
 /**
- * SheetsAPI — camada de serviço entre o Portal JOTEC e o Google Apps Script.
+ * SheetsAPI — camada de serviço entre o Portal Reverse Engenharia e o Google Apps Script.
  *
  * Depende de DB (js/db.js) já carregado na página.
  *

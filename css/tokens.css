@@ -1,28 +1,28 @@
 :root {
-  /* Paleta JOTEC */
+  /* Paleta Reverse Engenharia */
   --preto: #1A1A1A;
-  --dourado: #C5A04A;
-  --grafite: #4A4A4A;
-  --offwhite: #F8F6F2;
+  --verde-reverse: #3DB53C;
+  --grafite: #555555;
+  --offwhite: #F5F7F5;
 
   /* Derivados */
-  --dourado-hover: #D4AF56;
-  --dourado-light: rgba(197, 160, 74, 0.12);
-  --dourado-border: rgba(197, 160, 74, 0.4);
+  --verde-hover: #35A334;
+  --verde-light: rgba(61, 181, 60, 0.12);
+  --verde-border: rgba(61, 181, 60, 0.4);
   --preto-soft: #242424;
-  --sidebar-hover: rgba(197, 160, 74, 0.10);
-  --grafite-light: rgba(74, 74, 74, 0.12);
-  --grafite-border: rgba(74, 74, 74, 0.22);
+  --sidebar-hover: rgba(61, 181, 60, 0.10);
+  --grafite-light: rgba(85, 85, 85, 0.12);
+  --grafite-border: rgba(85, 85, 85, 0.22);
   --branco: #FFFFFF;
 
   /* Texto */
   --text-primary: #1A1A1A;
-  --text-secondary: #4A4A4A;
+  --text-secondary: #555555;
   --text-muted: #888888;
-  --text-inverse: #F8F6F2;
+  --text-inverse: #F5F7F5;
 
-  /* Cores de apoio (identidade visual) */
-  --azul-petroleo: #1F3A4A;
+  /* Cores de apoio */
+  --cinza-escuro: #333333;
   --vermelho-alerta: #B33A2E;
   --verde-conformidade: #2E7D5E;
 
@@ -65,13 +65,13 @@
 [data-tema="escuro"] {
   --offwhite:  #1C1C1E;
   --branco:    #26262A;
-  --text-primary:   #E8E5DF;
-  --text-secondary: #A0A0A8;
-  --text-muted:     #9494A0;
+  --text-primary:   #E8EFE8;
+  --text-secondary: #A0A8A0;
+  --text-muted:     #909490;
   --grafite-border: rgba(255, 255, 255, 0.10);
   --grafite-light:  rgba(255, 255, 255, 0.06);
-  --dourado-light:  rgba(197, 160, 74, 0.18);
-  --dourado-border: rgba(197, 160, 74, 0.35);
+  --verde-light:    rgba(61, 181, 60, 0.18);
+  --verde-border:   rgba(61, 181, 60, 0.35);
   --preto-soft:     #2C2C30;
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.40);
   --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.45);
