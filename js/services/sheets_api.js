@@ -33,6 +33,16 @@ const SheetsAPI = (() => {
   // Config
   // ──────────────────────────────────────────────────────────
 
+  /**
+   * Detecta se a URL parece ser de um Apps Script Web App.
+   * Aceita: https://script.google.com/macros/s/XXX/exec (com ou sem querystring)
+   * Rejeita: URL da planilha (docs.google.com/spreadsheets/...), URLs vazias, lixo etc.
+   */
+  function _isValidWebAppUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(\?.*)?$/.test(url.trim());
+  }
+
   async function setUrl(url) {
     _cachedUrl = url;
     await DB.put('config', { chave: CONFIG_KEY, valor: url });
@@ -41,14 +51,19 @@ const SheetsAPI = (() => {
   async function getUrl() {
     if (_cachedUrl) return _cachedUrl;
     const row = await DB.get('config', CONFIG_KEY);
-    if (row && row.valor) {
+    // Aceita somente URLs que pareçam Web App de Apps Script.
+    // Se o usuário colou a URL da planilha por engano, ignora e usa o DEFAULT_URL.
+    if (row && _isValidWebAppUrl(row.valor)) {
       _cachedUrl = row.valor;
       return _cachedUrl;
     }
-    // Primeiro carregamento: salva o default para aparecer já configurado na UI.
+    // URL salva é inválida ou inexistente: substitui pelo DEFAULT_URL embutido.
     if (DEFAULT_URL) {
       await DB.put('config', { chave: CONFIG_KEY, valor: DEFAULT_URL });
       _cachedUrl = DEFAULT_URL;
+      if (row && row.valor && row.valor !== DEFAULT_URL) {
+        console.warn('[SheetsAPI] URL salva nao parece Apps Script Web App. Usando DEFAULT_URL.');
+      }
       return _cachedUrl;
     }
     return null;
