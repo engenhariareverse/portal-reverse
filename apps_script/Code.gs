@@ -32,7 +32,7 @@
 // SCHEMAS
 // ============================================================
 
-const VERSION = '2.1.1';
+const VERSION = '2.1.2';
 
 const SHEET_PROSP = 'Prospeccao';
 const SHEET_CP    = 'ContasPagar';
@@ -177,8 +177,59 @@ function _getSheet(name, cols) {
       .setFontWeight('bold')
       .setBackground('#1A1A1A')
       .setFontColor('#C5A04A');
+  } else {
+    // Auto-cura: ajusta cabeçalhos se o schema mudou desde a criação da aba.
+    _ensureHeaders(sheet, cols);
   }
   return sheet;
+}
+
+/**
+ * Garante que a linha 1 da aba contenha exatamente os cabeçalhos esperados.
+ *
+ *  - Se a aba estiver vazia (só cabeçalho ou nada), sobrescreve a linha 1
+ *    com `cols` e reaplica formatação.
+ *  - Se já houver dados, INSERE colunas que faltam em sua posição correta,
+ *    preservando os valores existentes. Não remove colunas que não existem
+ *    mais em `cols` (segurança).
+ */
+function _ensureHeaders(sheet, cols) {
+  var lastRow = sheet.getLastRow();
+  var lastCol = sheet.getLastColumn();
+  var currentHeaders = lastCol > 0
+    ? sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(String)
+    : [];
+
+  // Se cabeçalhos já batem na ordem certa, nada a fazer.
+  var jaIguais = currentHeaders.length === cols.length &&
+    cols.every(function(c, i) { return currentHeaders[i] === c; });
+  if (jaIguais) return;
+
+  // Caso 1: aba sem dados (apenas cabeçalho ou completamente vazia).
+  if (lastRow <= 1) {
+    if (lastCol > cols.length) {
+      sheet.deleteColumns(cols.length + 1, lastCol - cols.length);
+    }
+    sheet.getRange(1, 1, 1, cols.length).setValues([cols]);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, cols.length)
+      .setFontWeight('bold')
+      .setBackground('#1A1A1A')
+      .setFontColor('#C5A04A');
+    return;
+  }
+
+  // Caso 2: já tem dados — insere apenas colunas faltantes na posição certa.
+  for (var i = 0; i < cols.length; i++) {
+    var col = cols[i];
+    if (currentHeaders.indexOf(col) >= 0) continue;
+    var posicaoDestino = i + 1;
+    sheet.insertColumnBefore(posicaoDestino);
+    sheet.getRange(1, posicaoDestino).setValue(col)
+      .setFontWeight('bold').setBackground('#1A1A1A').setFontColor('#C5A04A');
+    // re-lê cabeçalhos atualizados
+    currentHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
+  }
 }
 
 function _rowToObj(row, cols) {
