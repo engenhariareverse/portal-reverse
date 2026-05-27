@@ -32,7 +32,7 @@
 // SCHEMAS
 // ============================================================
 
-const VERSION = '2.1.2';
+const VERSION = '2.2.0';
 
 const SHEET_PROSP = 'Prospeccao';
 const SHEET_CP    = 'ContasPagar';
@@ -100,10 +100,50 @@ function _listAtivos(sheetName, cols) {
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
   var values  = sheet.getRange(2, 1, lastRow - 1, cols.length).getValues();
+
+  // Auto-atribui IDs para linhas que o usuário cadastrou manualmente sem ID.
+  // Escreve o ID de volta na planilha para evitar duplicação no próximo sync.
+  var idIdx = cols.indexOf('id');
+  if (idIdx >= 0) {
+    var maxId = 0;
+    for (var i = 0; i < values.length; i++) {
+      var n = Number(values[i][idIdx]);
+      if (n > maxId) maxId = n;
+    }
+    for (var i = 0; i < values.length; i++) {
+      var idVal = values[i][idIdx];
+      var idStr = (idVal === null || idVal === undefined) ? '' : String(idVal).trim();
+      var idNum = Number(idVal);
+      if (idStr === '' || !idNum || idNum <= 0) {
+        // só atribui ID se a linha tiver pelo menos um campo de identificação preenchido
+        var temConteudo = false;
+        for (var j = 0; j < values[i].length; j++) {
+          if (j === idIdx) continue;
+          if (values[i][j] !== '' && values[i][j] !== null && values[i][j] !== undefined) {
+            temConteudo = true; break;
+          }
+        }
+        if (!temConteudo) continue;
+        maxId++;
+        values[i][idIdx] = maxId;
+        sheet.getRange(i + 2, idIdx + 1).setValue(maxId);
+      }
+    }
+  }
+
   var out = [];
   for (var i = 0; i < values.length; i++) {
+    // pula linhas completamente vazias (sem nenhum dado)
+    var temConteudo = false;
+    for (var k = 0; k < values[i].length; k++) {
+      if (values[i][k] !== '' && values[i][k] !== null && values[i][k] !== undefined) {
+        temConteudo = true; break;
+      }
+    }
+    if (!temConteudo) continue;
+
     var obj = _rowToObj(values[i], cols);
-    if (obj.ativo !== false && String(obj.ativo).toUpperCase() !== 'FALSE') out.push(obj);
+    if (obj.ativo !== false) out.push(obj);
   }
   return out;
 }
@@ -239,8 +279,11 @@ function _rowToObj(row, cols) {
     if (v instanceof Date) v = _fmtDate(v);
     obj[cols[i]] = v;
   }
-  obj.id    = Number(obj.id) || obj.id;
-  obj.ativo = (obj.ativo === true || String(obj.ativo).toUpperCase() === 'TRUE');
+  obj.id = Number(obj.id) || obj.id;
+  // 'ativo' default = TRUE. Só vira false se estiver explicitamente FALSE/false.
+  // Isso permite que usuário preencha linhas no Sheets sem precisar marcar 'ativo'.
+  var ativoStr = String(obj.ativo === undefined || obj.ativo === null ? '' : obj.ativo).toUpperCase().trim();
+  obj.ativo = !(obj.ativo === false || ativoStr === 'FALSE');
   return obj;
 }
 
