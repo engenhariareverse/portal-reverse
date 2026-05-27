@@ -32,10 +32,11 @@
 // SCHEMAS
 // ============================================================
 
-const VERSION = '2.0.0';
+const VERSION = '2.1.0';
 
 const SHEET_PROSP = 'Prospeccao';
 const SHEET_CP    = 'ContasPagar';
+const SHEET_CLI   = 'Clientes';
 
 const COLS_PROSP = [
   'id', 'empresa', 'contato_nome', 'contato_cargo', 'telefone', 'email',
@@ -48,6 +49,11 @@ const COLS_CP = [
   'id', 'descricao', 'categoria', 'fornecedor', 'valor', 'vencimento',
   'status', 'pago_em', 'forma_pgto', 'recorrencia', 'parcela_nr',
   'parcela_total', 'anexo_url', 'obs', 'criado_em', 'atualizado_em', 'ativo',
+];
+
+const COLS_CLI = [
+  'id', 'nome', 'cnpj_cpf', 'telefone', 'email', 'cidade', 'segmento',
+  'status', 'obs', 'criado_em', 'atualizado_em', 'ativo',
 ];
 
 // ============================================================
@@ -80,7 +86,8 @@ function doPost(e) {
 }
 
 function _ctx(sheetParam) {
-  if (sheetParam === SHEET_CP) return { sheet: SHEET_CP, cols: COLS_CP };
+  if (sheetParam === SHEET_CP)  return { sheet: SHEET_CP,  cols: COLS_CP  };
+  if (sheetParam === SHEET_CLI) return { sheet: SHEET_CLI, cols: COLS_CLI };
   return { sheet: SHEET_PROSP, cols: COLS_PROSP };
 }
 
@@ -244,14 +251,15 @@ function _jsonOut(obj) {
 // ============================================================
 
 /**
- * Cria e formata as abas "Prospeccao" e "ContasPagar".
+ * Cria e formata as abas "Prospeccao", "ContasPagar" e "Clientes".
  * Selecione esta função no editor do Apps Script e clique Executar.
  */
 function setupPlanilha() {
   _setupProspeccao();
   _setupContasPagar();
+  _setupClientes();
   SpreadsheetApp.getActive().toast(
-    'Abas Prospeccao e ContasPagar configuradas! Agora implante como Web App.',
+    'Abas Prospeccao, ContasPagar e Clientes configuradas! Agora implante como Web App.',
     'Reverse Engenharia', 8
   );
 }
@@ -362,6 +370,52 @@ function _setupContasPagar() {
 
   // Dropdown ATIVO
   sheet.getRange(2, COLS_CP.indexOf('ativo') + 1, 1000, 1).setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList(['TRUE', 'FALSE'], true).build()
+  );
+}
+
+function _setupClientes() {
+  var sheet = _getSheet(SHEET_CLI, COLS_CLI);
+
+  // Larguras
+  var widths = {
+    nome: 240, cnpj_cpf: 150, telefone: 130, email: 200, cidade: 140,
+    segmento: 160, status: 110, obs: 260, criado_em: 150, atualizado_em: 150,
+  };
+  Object.keys(widths).forEach(function(col) {
+    var idx = COLS_CLI.indexOf(col) + 1;
+    if (idx > 0) sheet.setColumnWidth(idx, widths[col]);
+  });
+
+  // Dropdown STATUS
+  var statuses = ['lead', 'prospecto', 'ativo', 'inativo'];
+  var statusRange = sheet.getRange(2, COLS_CLI.indexOf('status') + 1, 1000, 1);
+  statusRange.setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList(statuses, true).build()
+  );
+
+  // Formatação condicional STATUS
+  var corStatus = {
+    'lead':      '#FEEFC3',
+    'prospecto': '#D2E3FC',
+    'ativo':     '#34A853',
+    'inativo':   '#BDC1C6',
+  };
+  var cliRules = sheet.getConditionalFormatRules();
+  Object.keys(corStatus).forEach(function(s) {
+    cliRules.push(
+      SpreadsheetApp.newConditionalFormatRule()
+        .whenTextEqualTo(s)
+        .setBackground(corStatus[s])
+        .setFontColor(s === 'ativo' ? '#FFFFFF' : '#1A1A1A')
+        .setRanges([statusRange])
+        .build()
+    );
+  });
+  sheet.setConditionalFormatRules(cliRules);
+
+  // Dropdown ATIVO
+  sheet.getRange(2, COLS_CLI.indexOf('ativo') + 1, 1000, 1).setDataValidation(
     SpreadsheetApp.newDataValidation().requireValueInList(['TRUE', 'FALSE'], true).build()
   );
 }

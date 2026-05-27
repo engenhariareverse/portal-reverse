@@ -315,10 +315,114 @@ const SheetsAPI = (() => {
   })();
 
   // ──────────────────────────────────────────────────────────
+  // API Clientes
+  // ──────────────────────────────────────────────────────────
+
+  const Clientes = (() => {
+
+    const STATUS_OK = new Set(['lead', 'prospecto', 'ativo', 'inativo']);
+
+    /** Mapeia uma linha do Sheets para o schema local do clientes. */
+    function _map(row) {
+      const status = String(row.status || 'lead').toLowerCase().trim();
+      return {
+        id:        Number(row.id),
+        nome:      row.nome      || '',
+        cnpj_cpf:  row.cnpj_cpf  || '',
+        telefone:  row.telefone  || '',
+        email:     row.email     || '',
+        cidade:    row.cidade    || '',
+        segmento:  row.segmento  || '',
+        status:    STATUS_OK.has(status) ? status : 'lead',
+        obs:       row.obs       || '',
+        criado_em: row.criado_em || new Date().toISOString(),
+      };
+    }
+
+    async function cliList() {
+      const result = await _get({ action: 'list', sheet: 'Clientes' });
+      return (result.data || []).filter(r => r.nome).map(_map);
+    }
+
+    async function cliCreate(payload) {
+      return _post({ action: 'create', sheet: 'Clientes', ...payload });
+    }
+
+    async function cliUpdate(id, payload) {
+      return _post({ action: 'update', sheet: 'Clientes', id, ...payload });
+    }
+
+    async function cliDel(id) {
+      return _post({ action: 'delete', sheet: 'Clientes', id });
+    }
+
+    /**
+     * Sincronização bidirecional:
+     *  1. Envia clientes locais que não existem no Sheets.
+     *  2. Atualiza o DB local com os dados do Sheets (Sheets vence).
+     *  3. Dedup por nome (case-insensitive) ao puxar — evita duplicar
+     *     quando o usuário digitou o mesmo cliente no portal e no Sheets.
+     */
+    async function syncAll() {
+      if (!navigator.onLine) return { ok: false, offline: true, msg: 'Sem conexão.' };
+      try {
+        const [sheetsRows, localRows] = await Promise.all([
+          cliList(),
+          DB.getAll('clientes'),
+        ]);
+
+        const sheetsById   = new Map(sheetsRows.map(r => [r.id, r]));
+        const localById    = new Map(localRows.map(r => [r.id, r]));
+        const localByName  = new Map(localRows.map(r => [(r.nome || '').toLowerCase().trim(), r]));
+
+        // 1. Enviar registros locais ausentes no Sheets
+        let pushed = 0;
+        for (const [id, lcli] of localById) {
+          if (!sheetsById.has(id)) {
+            try {
+              await cliCreate({ ...lcli, ativo: true });
+              pushed++;
+            } catch (e) {
+              console.warn('[SheetsAPI.Cli] push falhou id=' + id, e.message);
+            }
+          }
+        }
+
+        // 2. Upsert Sheets → local (Sheets vence). Dedup por nome.
+        let pulled = 0;
+        for (const [id, scli] of sheetsById) {
+          const nomeKey = (scli.nome || '').toLowerCase().trim();
+          const existeLocalMesmoNome = localByName.get(nomeKey);
+          if (existeLocalMesmoNome && existeLocalMesmoNome.id !== id) {
+            // já existe um local com mesmo nome — atualiza ele em vez de duplicar
+            await DB.put('clientes', { ...existeLocalMesmoNome, ...scli, id: existeLocalMesmoNome.id });
+          } else {
+            await DB.put('clientes', scli);
+          }
+          pulled++;
+        }
+
+        return { ok: true, pulled, pushed };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    }
+
+    return {
+      list:   cliList,
+      create: cliCreate,
+      update: cliUpdate,
+      delete: cliDel,
+      syncAll,
+    };
+  })();
+
+  // ──────────────────────────────────────────────────────────
 
   return {
     setUrl, getUrl, ping,
     list, create, update, delete: del, syncPending,
     ContasPagar,
+    Clientes,
   };
 })();

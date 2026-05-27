@@ -20,6 +20,7 @@ const Clientes = (() => {
       <div class="page-header">
         <h1 class="page-title">Clientes</h1>
         <div class="page-header-actions">
+          <button class="btn btn--ghost" id="btn-sync-clientes" title="Sincronizar com Google Sheets">⟳ Sheets</button>
           <button class="btn btn--ghost" id="btn-importar-crm">↑ Importar Excel</button>
           <button class="btn btn--primary" id="btn-novo-cliente">+ Novo Cliente</button>
         </div>
@@ -39,9 +40,43 @@ const Clientes = (() => {
 
     document.getElementById('btn-novo-cliente').addEventListener('click', () => abrirModal());
     document.getElementById('btn-importar-crm').addEventListener('click', () => importarCRM());
+    document.getElementById('btn-sync-clientes').addEventListener('click', () => _sincronizar());
     document.getElementById('filtro-clientes').addEventListener('input', renderTabela);
     document.getElementById('filtro-status').addEventListener('change', renderTabela);
     renderTabela();
+  }
+
+  async function _sincronizar() {
+    const btn = document.getElementById('btn-sync-clientes');
+    if (!btn) return;
+    const url = await SheetsAPI.getUrl();
+    if (!url) {
+      UI.showToast('⚠ Configure a URL do Google Sheets em Prospecção → Configurações.', 'warning');
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = '⟳ Sincronizando...';
+    try {
+      const r = await SheetsAPI.Clientes.syncAll();
+      if (!r.ok) {
+        UI.showToast('Falha na sincronização: ' + (r.msg || r.error || 'erro desconhecido'), 'error');
+        return;
+      }
+      const partes = [];
+      if (r.pushed) partes.push(`${r.pushed} enviado${r.pushed !== 1 ? 's' : ''}`);
+      if (r.pulled) partes.push(`${r.pulled} recebido${r.pulled !== 1 ? 's' : ''}`);
+      UI.showToast(
+        partes.length ? `Sincronizado: ${partes.join(' · ')}` : 'Tudo sincronizado.',
+        'success'
+      );
+      _todos = await DB.getAll('clientes');
+      renderTabela();
+    } catch (e) {
+      UI.showToast('Erro: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⟳ Sheets';
+    }
   }
 
   function renderTabela() {
@@ -174,12 +209,19 @@ const Clientes = (() => {
         const data = Object.fromEntries(fd.entries());
 
         if (edit) {
-          await DB.put('clientes', { ...cliente, ...data });
+          const atualizado = { ...cliente, ...data, atualizado_em: new Date().toISOString() };
+          await DB.put('clientes', atualizado);
           UI.showToast('Cliente atualizado com sucesso!', 'success');
+          // Push assíncrono para Sheets
+          SheetsAPI.Clientes.update(atualizado.id, atualizado).catch(e =>
+            console.warn('[Sheets Clientes] push update:', e.message));
         } else {
           data.criado_em = new Date().toISOString();
-          await DB.add('clientes', data);
+          const newId = await DB.add('clientes', data);
           UI.showToast('Cliente cadastrado!', 'success');
+          // Push assíncrono para Sheets
+          SheetsAPI.Clientes.create({ ...data, id: newId, ativo: true }).catch(e =>
+            console.warn('[Sheets Clientes] push create:', e.message));
         }
 
         UI.closeModal();
@@ -208,6 +250,9 @@ const Clientes = (() => {
     if (!ok) return;
     await DB.remove('clientes', id);
     UI.showToast('Cliente excluído.', 'info');
+    // Push assíncrono para Sheets (soft delete)
+    SheetsAPI.Clientes.delete(id).catch(e =>
+      console.warn('[Sheets Clientes] push delete:', e.message));
     _todos = await DB.getAll('clientes');
     renderTabela();
   }
@@ -286,6 +331,7 @@ const Clientes = (() => {
       const STATUS_OK = new Set(['lead','prospecto','ativo','inativo']);
       // Dedup: ignora nomes que já existem (case-insensitive)
       const existentes = new Set(_todos.map(c => (c.nome || '').toLowerCase().trim()));
+      const criadosParaSheets = [];
       let novos = 0, duplas = 0, erros = 0;
 
       for (const row of _rows) {
@@ -297,10 +343,21 @@ const Clientes = (() => {
           if (!obj.nome) continue;
           if (existentes.has(obj.nome.toLowerCase().trim())) { duplas++; continue; }
           if (!STATUS_OK.has(obj.status)) obj.status = 'lead';
-          await DB.add('clientes', obj);
+          const newId = await DB.add('clientes', obj);
           existentes.add(obj.nome.toLowerCase().trim()); // evita dupl. dentro do arquivo
+          criadosParaSheets.push({ ...obj, id: newId, ativo: true });
           novos++;
         } catch { erros++; }
+      }
+
+      // Push assíncrono em lote para Sheets (não bloqueia o toast)
+      if (criadosParaSheets.length > 0) {
+        (async () => {
+          for (const c of criadosParaSheets) {
+            try { await SheetsAPI.Clientes.create(c); }
+            catch (e) { console.warn('[Sheets Clientes] push import:', e.message); }
+          }
+        })();
       }
 
       UI.closeModal();
