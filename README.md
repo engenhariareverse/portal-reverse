@@ -1,62 +1,62 @@
-# Portal JOTEC Soluções
+# Portal Reverse Engenharia
 
-Portal de gestão interna para JOTEC Soluções — Engenharia Mecânica · Segurança · Conformidade (CREA-SP, RMC).
+Portal de gestão interno para a **Reverse Engenharia** — Engenharia · Segurança · Conformidade.
 
-## O que é
+🌐 **Acesso:** [engenhariareverse.github.io/portal-reverse](https://engenhariareverse.github.io/portal-reverse)
 
-SPA (Single Page Application) 100% frontend — sem servidor de banco de dados, sem backend obrigatório. Todos os dados ficam no navegador via IndexedDB. O módulo **Prospecção** se integra opcionalmente com Google Sheets para acesso multi-dispositivo.
+---
 
-### Módulos
+## Funcionalidades
 
 | Módulo | Descrição |
 |---|---|
-| Dashboard | KPIs, clientes recentes, próximos compromissos |
-| Clientes | Cadastro e gestão de clientes |
-| Serviços | Catálogo de serviços com faixa de preço |
-| Orçamentos | Geração de orçamentos com export PDF/Excel |
-| Agenda | Calendário mensal/semanal/diário/lista |
-| Kanban | Quadro de tarefas e prazos por projeto |
-| Financeiro | Contas a receber, histórico, gráficos |
-| ARTs | Controle de Anotações de Responsabilidade Técnica |
-| Documentos | Gestão de documentos por cliente |
-| Prospecção | Funil de vendas + Follow-up + integração Google Sheets |
+| **Dashboard** | KPIs em tempo real: clientes, financeiro, margem, contas a pagar |
+| **Clientes** | Cadastro completo com histórico |
+| **Serviços** | Catálogo com % NF, % ART e custos fixos |
+| **Orçamentos** | Memorial de cálculo interno + PDF para o cliente |
+| **Agenda** | Compromissos e visitas com alertas |
+| **Kanban** | Gestão de tarefas por projeto |
+| **Financeiro** | Contas a Receber + Contas a Pagar + Visão Geral |
+| **ARTs** | Controle de Anotações de Responsabilidade Técnica |
+| **Documentos** | Repositório de arquivos internos |
+| **Prospecção** | CRM com funil de vendas e follow-up |
 
-## Como rodar localmente
+## Tecnologia
 
-**Opção 1 — Python (recomendado):**
+- **Frontend:** HTML5 + CSS3 + JavaScript (ES6+ vanilla, sem framework)
+- **Banco de dados:** IndexedDB (local, offline-first)
+- **Sincronização:** Google Sheets via Apps Script
+- **Hospedagem:** GitHub Pages (estático, sem servidor)
+
+## Como usar
+
+### Primeira vez
+1. Acesse o link acima
+2. O portal funciona direto no navegador — sem instalação
+3. Todos os dados ficam salvos localmente no navegador
+
+### Backup
+- Use **Exportar Backup** (barra superior) para salvar um arquivo `.json`
+- Use **Importar Backup** para restaurar em outro dispositivo
+
+### Sincronização com Google Sheets
+1. Crie uma planilha chamada `Reverse Engenharia — Portal` no Google Drive
+2. Abra **Extensões → Apps Script** e cole o conteúdo de `apps_script/Code.gs`
+3. Execute `setupPlanilha`, depois implante como **Web App** (acesso: qualquer pessoa)
+4. Cole a URL gerada em **Prospecção → Configurações** no portal
+
+## Desenvolvimento local
 
 ```bash
-cd JOTEC_Portal
-python -m http.server 7373
+# Servir localmente (qualquer servidor HTTP estático)
+npx serve .
+# ou
+python -m http.server 8080
 ```
 
-Acesse: `http://localhost:7373`
+> **Atenção:** abrir `index.html` diretamente pelo explorador de arquivos (`file:///`) não funciona — use sempre um servidor HTTP local.
 
-**Opção 2 — VS Code Live Server:**  
-Instale a extensão Live Server → botão "Go Live" na barra de status.
+## Versão
 
-> **Atenção:** abrir `index.html` diretamente pelo explorador de arquivos (`file:///`) não funciona bem com os módulos JS. Use sempre um servidor HTTP local.
-
-## Configurar o módulo Prospecção
-
-Para usar o módulo de Prospecção com sincronização pelo Google Sheets, siga o passo-a-passo em [docs/SETUP_PROSPECCAO.md](docs/SETUP_PROSPECCAO.md).
-
-## Deploy no GitHub Pages
-
-Veja o tutorial completo em [docs/DEPLOY_GITHUB_PAGES.md](docs/DEPLOY_GITHUB_PAGES.md).
-
-## Backup dos dados
-
-Os dados dos demais módulos (Clientes, Orçamentos, Agenda etc.) ficam no IndexedDB do navegador. Use o botão **"Exportar Backup"** na sidebar regularmente para salvar um `.json` no seu computador.
-
-## Tecnologias
-
-- HTML5 / CSS3 / JavaScript Vanilla (ES2020+)
-- [Chart.js](https://www.chartjs.org/) — gráficos
-- [SortableJS](https://sortablejs.github.io/Sortable/) — drag & drop
-- [jsPDF](https://github.com/parallax/jsPDF) + AutoTable — export PDF
-- [SheetJS (XLSX)](https://sheetjs.com/) — export Excel
-- [html2canvas](https://html2canvas.hertzen.com/) — screenshot para PDF
-- [Day.js](https://day.js.org/) — manipulação de datas
-- IndexedDB — armazenamento local
-- Google Sheets + Apps Script — banco online para Prospecção (opcional)
+**v1.0.0** — Maio 2026  
+Desenvolvido para uso interno da Reverse Engenharia.

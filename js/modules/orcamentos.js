@@ -239,7 +239,7 @@ const Orcamentos = (() => {
     ).join('');
 
     const servicoOpts = servicos.map(s =>
-      `<option value="${s.id}" data-preco="${s.preco_ideal}">${esc(s.nome)} (${UI.formatBRL(s.preco_ideal)})</option>`
+      `<option value="${s.id}" data-preco="${s.preco_ideal}" data-nf="${s.imposto_nf||0}" data-art="${s.imposto_art||0}" data-art-padrao="${s.art_padrao?'1':''}">${esc(s.nome)} (${UI.formatBRL(s.preco_ideal)})</option>`
     ).join('');
 
     const itensIniciais = orcExistente ? (orcExistente.itens || []) : [];
@@ -309,7 +309,7 @@ const Orcamentos = (() => {
                 color:var(--text-secondary);letter-spacing:.02em;text-transform:uppercase">Total</label>
               <div id="orc-total-display"
                 style="font-size:24px;font-weight:800;font-family:var(--font-titulo);
-                color:var(--dourado);padding:6px 0;line-height:1">R$ 0,00</div>
+                color:var(--verde-reverse);padding:6px 0;line-height:1">R$ 0,00</div>
             </div>
           </div>
         </div>
@@ -320,6 +320,116 @@ const Orcamentos = (() => {
             placeholder="Condições especiais, prazos, escopo...">${orcExistente ? esc(orcExistente.obs || '') : ''}</textarea>
         </div>
 
+        <!-- ── Memorial de Cálculo ────────────────────────────────── -->
+        <div style="margin-top:24px;padding-top:20px;border-top:2px dashed var(--grafite-border)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:11px;font-family:var(--font-titulo);font-weight:700;
+              text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary)">
+              Memorial de Cálculo
+            </span>
+            <div style="flex:1;height:1px;background:var(--grafite-border)"></div>
+            <span class="imposto-tag">Somente interno · Não aparece para o cliente</span>
+          </div>
+
+          <!-- Custos -->
+          <div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-size:12px;font-weight:600;color:var(--text-secondary)">Custos</span>
+              <button type="button" class="btn btn--ghost btn--sm" id="btn-add-custo">+ Adicionar Custo</button>
+            </div>
+            <div id="mem-custos-container" style="display:flex;flex-direction:column;gap:6px"></div>
+            <div id="mem-custos-empty" style="text-align:center;padding:12px;color:var(--text-muted);
+              font-size:12px;background:var(--offwhite);border-radius:var(--r-sm);
+              border:1.5px dashed var(--grafite-border)">
+              Nenhum custo. Clique em "+ Adicionar Custo".
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 12px;
+              background:var(--offwhite);border-radius:var(--r-sm);margin-top:8px;font-size:13px">
+              <span style="font-weight:600">Total Custos</span>
+              <span id="mem-total-custos" style="font-weight:700">R$ 0,00</span>
+            </div>
+          </div>
+
+          <!-- Impostos -->
+          <div style="margin-bottom:14px;padding:12px 16px;background:var(--offwhite);
+            border-radius:var(--r);border:1px solid var(--grafite-border)">
+            <div style="font-size:11px;font-family:var(--font-titulo);font-weight:700;
+              text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin-bottom:10px">
+              Impostos (sobre o valor do orçamento)
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div style="display:flex;align-items:center;gap:7px">
+                <input type="checkbox" id="mem-nf-ativo" style="cursor:pointer;width:15px;height:15px">
+                <label for="mem-nf-ativo" style="font-size:12px;font-weight:600;cursor:pointer;min-width:20px">NF</label>
+                <input type="number" id="mem-nf-pct" class="input" step="0.01" min="0" max="100"
+                  style="width:58px;padding:5px 7px;font-size:12px" placeholder="7"
+                  value="${orcExistente?.memorial?.nf_pct || ''}">
+                <span style="font-size:12px;color:var(--text-muted)">%</span>
+                <span id="mem-nf-val" style="font-size:12px;color:var(--laranja);font-weight:700;margin-left:auto">R$ 0,00</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:7px">
+                <input type="checkbox" id="mem-art-ativo" style="cursor:pointer;width:15px;height:15px">
+                <label for="mem-art-ativo" style="font-size:12px;font-weight:600;cursor:pointer;min-width:26px">ART</label>
+                <input type="number" id="mem-art-pct" class="input" step="0.01" min="0" max="100"
+                  style="width:58px;padding:5px 7px;font-size:12px" placeholder="11"
+                  value="${orcExistente?.memorial?.art_pct || ''}">
+                <span style="font-size:12px;color:var(--text-muted)">%</span>
+                <span id="mem-art-val" style="font-size:12px;color:var(--azul);font-weight:700;margin-left:auto">R$ 0,00</span>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0 0;
+              border-top:1px solid var(--grafite-border);margin-top:10px;font-size:13px">
+              <span style="font-weight:600">Total Custos + Impostos</span>
+              <span id="mem-total-com-impostos" style="font-weight:700">R$ 0,00</span>
+            </div>
+          </div>
+
+          <!-- Resultado -->
+          <div style="padding:14px 16px;border:1.5px solid var(--verde-border);
+            border-radius:var(--r);background:var(--verde-light)">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:10px">
+              <div style="text-align:center">
+                <div style="font-size:10px;font-family:var(--font-titulo);font-weight:700;
+                  text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:4px">Orçamento</div>
+                <div id="mem-orc-valor" style="font-size:18px;font-weight:800;
+                  font-family:var(--font-titulo);color:var(--verde-reverse)">R$ 0,00</div>
+              </div>
+              <div style="text-align:center;border-left:1px solid var(--grafite-border);padding-left:12px">
+                <div style="font-size:10px;font-family:var(--font-titulo);font-weight:700;
+                  text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:4px">Lucro</div>
+                <div id="mem-lucro" style="font-size:18px;font-weight:800;font-family:var(--font-titulo)">R$ 0,00</div>
+              </div>
+              <div style="text-align:center;border-left:1px solid var(--grafite-border);padding-left:12px">
+                <div style="font-size:10px;font-family:var(--font-titulo);font-weight:700;
+                  text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:4px">Margem</div>
+                <div id="mem-margem" style="font-size:18px;font-weight:800;font-family:var(--font-titulo)">—</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding-top:10px;
+              border-top:1px solid var(--grafite-border)">
+              <span style="font-size:12px;color:var(--text-secondary);font-weight:600">Prolabore</span>
+              <input type="number" id="mem-prolabore-pct" class="input" min="0" max="100" step="1"
+                style="width:55px;padding:4px 8px;font-size:12px"
+                value="${orcExistente?.memorial?.prolabore_pct ?? 50}">
+              <span style="font-size:12px;color:var(--text-muted)">%</span>
+              <span id="mem-prolabore-val" style="font-size:13px;font-weight:700;color:var(--verde-reverse)">R$ 0,00</span>
+              <div id="mem-alerta" style="margin-left:auto"></div>
+            </div>
+          </div>
+
+          <!-- Lançar impostos (só quando aprovado) -->
+          <div id="mem-lancar" style="display:none;margin-top:12px;padding:12px 14px;
+            background:var(--verde-bg);border-radius:var(--r);border:1px solid rgba(46,125,50,.3)">
+            <div style="font-size:12px;color:var(--verde);font-weight:600;margin-bottom:8px">
+              ✅ Orçamento aprovado — deseja lançar os impostos em Contas a Pagar?
+            </div>
+            <button type="button" id="btn-lancar-impostos" class="btn btn--sm"
+              style="background:var(--verde);color:#fff;border:none;padding:6px 14px">
+              Lançar NF + ART em Contas a Pagar
+            </button>
+          </div>
+        </div>
+
         <div class="form-actions">
           <button type="button" class="btn btn--ghost" id="btn-cancelar-orc">Cancelar</button>
           <button type="button" class="btn btn--primary" id="btn-salvar-orc">
@@ -327,6 +437,25 @@ const Orcamentos = (() => {
           </button>
         </div>
       </div>
+
+      <template id="tpl-custo">
+        <div class="mem-custo-row" style="display:grid;grid-template-columns:1fr 58px 90px 32px;
+          gap:8px;align-items:end;background:var(--offwhite);padding:8px 10px;border-radius:var(--r-sm)">
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--text-muted);font-weight:700">Item</label>
+            <input type="text" class="input custo-desc" placeholder="Ex: Sigma, Nota MEI, Frete..." style="font-size:12px">
+          </div>
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--text-muted);font-weight:700">Qtd</label>
+            <input type="number" class="input custo-qtd" value="1" min="0" step="1" style="font-size:12px">
+          </div>
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--text-muted);font-weight:700">Unit (R$)</label>
+            <input type="number" class="input custo-unit" placeholder="0,00" min="0" step="0.01" style="font-size:12px">
+          </div>
+          <button type="button" class="btn-icon btn-icon--danger custo-remove" style="height:38px" title="Remover">✕</button>
+        </div>
+      </template>
 
       <template id="tpl-item">
         <div class="orc-item">
@@ -371,7 +500,144 @@ const Orcamentos = (() => {
       const desconto = parseFloat(document.getElementById('orc-desconto').value) || 0;
       const el = document.getElementById('orc-total-display');
       if (el) el.textContent = UI.formatBRL(Math.max(0, subtotal - desconto));
+      calcularMemorial();
     }
+
+    // ── Memorial de Cálculo ───────────────────────
+    const memCustosContainer = document.getElementById('mem-custos-container');
+    const memCustosEmpty     = document.getElementById('mem-custos-empty');
+    const tplCusto           = document.getElementById('tpl-custo');
+    let custosItems          = [];
+
+    function calcularMemorial() {
+      const nfEl = document.getElementById('mem-nf-ativo');
+      if (!nfEl) return;
+
+      const totalCustos = custosItems.reduce((s, c) => {
+        return s + (parseFloat(c.qtd.value)||0) * (parseFloat(c.unit.value)||0);
+      }, 0);
+
+      const orcTotalText = (document.getElementById('orc-total-display')?.textContent || 'R$ 0,00')
+        .replace(/[^0-9,]/g, '').replace(',', '.');
+      const orcTotal = parseFloat(orcTotalText) || 0;
+
+      const nfAtivo  = document.getElementById('mem-nf-ativo').checked;
+      const nfPct    = parseFloat(document.getElementById('mem-nf-pct').value)    || 0;
+      const artAtivo = document.getElementById('mem-art-ativo').checked;
+      const artPct   = parseFloat(document.getElementById('mem-art-pct').value)   || 0;
+
+      const nfVal    = nfAtivo  ? orcTotal * nfPct  / 100 : 0;
+      const artVal   = artAtivo ? orcTotal * artPct / 100 : 0;
+      const totalComImpostos = totalCustos + nfVal + artVal;
+      const lucro    = orcTotal - totalComImpostos;
+      const margem   = orcTotal > 0 ? (lucro / orcTotal * 100) : 0;
+      const prolPct  = parseFloat(document.getElementById('mem-prolabore-pct').value) || 50;
+      const prolabore = lucro * prolPct / 100;
+
+      document.getElementById('mem-total-custos').textContent       = UI.formatBRL(totalCustos);
+      document.getElementById('mem-nf-val').textContent             = UI.formatBRL(nfVal);
+      document.getElementById('mem-art-val').textContent            = UI.formatBRL(artVal);
+      document.getElementById('mem-total-com-impostos').textContent = UI.formatBRL(totalComImpostos);
+      document.getElementById('mem-orc-valor').textContent          = UI.formatBRL(orcTotal);
+      document.getElementById('mem-prolabore-val').textContent      = UI.formatBRL(prolabore);
+
+      const lucroEl  = document.getElementById('mem-lucro');
+      const margemEl = document.getElementById('mem-margem');
+      lucroEl.textContent  = UI.formatBRL(lucro);
+      margemEl.textContent = orcTotal > 0 ? margem.toFixed(1) + '%' : '—';
+
+      const cor = margem >= 30 ? 'var(--verde)' : margem >= 15 ? 'var(--laranja)' : 'var(--vermelho)';
+      if (orcTotal > 0) { lucroEl.style.color = cor; margemEl.style.color = cor; }
+
+      const alertEl = document.getElementById('mem-alerta');
+      if (orcTotal > 0 && margem < 15) {
+        alertEl.innerHTML = '<span style="padding:3px 10px;background:var(--vermelho-bg);color:var(--vermelho);border-radius:4px;font-size:11px;font-weight:700">⚠ Margem baixa — revisar!</span>';
+      } else if (orcTotal > 0 && margem < 30) {
+        alertEl.innerHTML = '<span style="padding:3px 10px;background:var(--laranja-bg);color:var(--laranja);border-radius:4px;font-size:11px;font-weight:700">⚡ Margem apertada</span>';
+      } else {
+        alertEl.innerHTML = '';
+      }
+
+      const status = document.getElementById('orc-status')?.value;
+      const lancar = document.getElementById('mem-lancar');
+      lancar.style.display = (status === 'aprovado' && (nfAtivo || artAtivo)) ? 'block' : 'none';
+    }
+
+    function adicionarCusto(dados = null) {
+      const clone = tplCusto.content.cloneNode(true);
+      const div   = clone.querySelector('.mem-custo-row');
+      const qtd   = div.querySelector('.custo-qtd');
+      const unit  = div.querySelector('.custo-unit');
+      const desc  = div.querySelector('.custo-desc');
+      const btn   = div.querySelector('.custo-remove');
+
+      if (dados) { desc.value = dados.descricao || ''; qtd.value = dados.qtd || 1; unit.value = dados.valor_unit || ''; }
+      qtd.addEventListener('input', calcularMemorial);
+      unit.addEventListener('input', calcularMemorial);
+      const ref = { div, qtd, unit, desc };
+      btn.addEventListener('click', () => {
+        div.remove();
+        const i = custosItems.indexOf(ref);
+        if (i > -1) custosItems.splice(i, 1);
+        memCustosEmpty.style.display = custosItems.length ? 'none' : 'block';
+        calcularMemorial();
+      });
+      custosItems.push(ref);
+      memCustosContainer.appendChild(div);
+      memCustosEmpty.style.display = 'none';
+      calcularMemorial();
+    }
+
+    // Pré-carregar memorial existente
+    const mem = orcExistente?.memorial;
+    if (mem) {
+      if (mem.nf_pct)        document.getElementById('mem-nf-pct').value        = mem.nf_pct;
+      if (mem.nf_ativo)      document.getElementById('mem-nf-ativo').checked    = true;
+      if (mem.art_pct)       document.getElementById('mem-art-pct').value       = mem.art_pct;
+      if (mem.art_ativo)     document.getElementById('mem-art-ativo').checked   = true;
+      if (mem.prolabore_pct !== undefined) document.getElementById('mem-prolabore-pct').value = mem.prolabore_pct;
+      (mem.custos || []).forEach(c => adicionarCusto(c));
+    }
+
+    document.getElementById('btn-add-custo').addEventListener('click', () => adicionarCusto());
+    document.getElementById('mem-nf-ativo').addEventListener('change', calcularMemorial);
+    document.getElementById('mem-nf-pct').addEventListener('input', calcularMemorial);
+    document.getElementById('mem-art-ativo').addEventListener('change', calcularMemorial);
+    document.getElementById('mem-art-pct').addEventListener('input', calcularMemorial);
+    document.getElementById('mem-prolabore-pct').addEventListener('input', calcularMemorial);
+    document.getElementById('orc-status').addEventListener('change', calcularMemorial);
+
+    // Auto-preencher NF/ART do serviço quando o primeiro item é selecionado
+    function preencherImpostosDoServico(servicoId) {
+      const serv = servicos.find(s => s.id === parseInt(servicoId));
+      if (!serv) return;
+      if (serv.imposto_nf  && !document.getElementById('mem-nf-pct').value)  document.getElementById('mem-nf-pct').value  = serv.imposto_nf;
+      if (serv.imposto_art && !document.getElementById('mem-art-pct').value) document.getElementById('mem-art-pct').value = serv.imposto_art;
+      if (serv.art_padrao) document.getElementById('mem-art-ativo').checked = true;
+      calcularMemorial();
+    }
+
+    // Lançar impostos em Contas a Pagar
+    document.getElementById('btn-lancar-impostos').addEventListener('click', async () => {
+      const orcTotalText = (document.getElementById('orc-total-display')?.textContent || 'R$ 0,00')
+        .replace(/[^0-9,]/g, '').replace(',', '.');
+      const orcTotal = parseFloat(orcTotalText) || 0;
+      const nfAtivo  = document.getElementById('mem-nf-ativo').checked;
+      const nfPct    = parseFloat(document.getElementById('mem-nf-pct').value)  || 0;
+      const artAtivo = document.getElementById('mem-art-ativo').checked;
+      const artPct   = parseFloat(document.getElementById('mem-art-pct').value) || 0;
+      const numero   = document.getElementById('orc-numero').value;
+      const venc     = new Date(); venc.setDate(venc.getDate() + 30);
+      const vencStr  = venc.toISOString().slice(0, 10);
+      const lancamentos = [];
+      if (nfAtivo && nfPct > 0) lancamentos.push({ descricao: `NF ${nfPct}% — Orç. ${numero}`, categoria: 'Impostos', valor: orcTotal * nfPct / 100, vencimento: vencStr, status: 'pendente', forma_pagamento: '', recorrencia: 'unica', observacao: `Imposto NF referente ao orçamento ${numero}`, criado_em: new Date().toISOString(), atualizado_em: new Date().toISOString() });
+      if (artAtivo && artPct > 0) lancamentos.push({ descricao: `ART ${artPct}% — Orç. ${numero}`, categoria: 'Impostos', valor: orcTotal * artPct / 100, vencimento: vencStr, status: 'pendente', forma_pagamento: '', recorrencia: 'unica', observacao: `Taxa ART referente ao orçamento ${numero}`, criado_em: new Date().toISOString(), atualizado_em: new Date().toISOString() });
+      for (const l of lancamentos) await DB.add('contas_pagar', l);
+      UI.showToast(`${lancamentos.length} lançamento(s) criado(s) em Contas a Pagar!`, 'success');
+      document.getElementById('mem-lancar').style.display = 'none';
+    });
+
+    calcularMemorial();
 
     function adicionarItem(dados = null) {
       const clone = tpl.content.cloneNode(true);
@@ -394,6 +660,7 @@ const Orcamentos = (() => {
         const opt = inputServico.options[inputServico.selectedIndex];
         if (opt && opt.dataset.preco) inputValor.value = opt.dataset.preco;
         calcularTotal();
+        if (itens.length === 1) preencherImpostosDoServico(inputServico.value);
       });
       inputQtd.addEventListener('input', calcularTotal);
       inputValor.addEventListener('input', calcularTotal);
@@ -442,12 +709,26 @@ const Orcamentos = (() => {
       const subtotal  = itensData.reduce((s, i) => s + i.qtd * i.valor_unit, 0);
       const total     = Math.max(0, subtotal - desconto);
 
+      const memorial = {
+        custos: custosItems.map(c => ({
+          descricao:  c.desc.value.trim() || 'Custo',
+          qtd:        parseFloat(c.qtd.value)  || 1,
+          valor_unit: parseFloat(c.unit.value) || 0,
+        })),
+        nf_ativo:      document.getElementById('mem-nf-ativo').checked,
+        nf_pct:        parseFloat(document.getElementById('mem-nf-pct').value)        || 0,
+        art_ativo:     document.getElementById('mem-art-ativo').checked,
+        art_pct:       parseFloat(document.getElementById('mem-art-pct').value)       || 0,
+        prolabore_pct: parseFloat(document.getElementById('mem-prolabore-pct').value) || 50,
+      };
+
       const dados = {
         numero:             document.getElementById('orc-numero').value,
         cliente_id:         clienteId,
         itens:              itensData,
         desconto,
         total,
+        memorial,
         validade:           document.getElementById('orc-validade').value,
         condicao_pagamento: document.getElementById('orc-pagamento').value.trim(),
         status:             document.getElementById('orc-status').value,
@@ -544,7 +825,7 @@ const Orcamentos = (() => {
 
         <!-- Cabeçalho da proposta -->
         <div style="display:flex;align-items:center;justify-content:space-between;
-          padding-bottom:18px;border-bottom:3px solid #C5A04A;margin-bottom:22px">
+          padding-bottom:18px;border-bottom:3px solid #3DB53C;margin-bottom:22px">
           <div style="display:flex;align-items:center;gap:14px">
             <img src="assets/logo.png" alt="Reverse Engenharia" style="height:48px;width:auto">
             <div>
@@ -566,7 +847,7 @@ const Orcamentos = (() => {
 
         <!-- Dados do cliente e detalhes -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px">
-          <div style="background:#F8F6F2;border-radius:8px;padding:14px;border-left:3px solid #C5A04A">
+          <div style="background:#F8F6F2;border-radius:8px;padding:14px;border-left:3px solid #3DB53C">
             <div style="font-size:9px;font-family:var(--font-titulo);font-weight:700;
               color:#888;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Cliente</div>
             <div style="font-weight:700;font-size:14px;margin-bottom:4px">${cli ? esc(cli.nome) : '—'}</div>
@@ -624,7 +905,7 @@ const Orcamentos = (() => {
               <span>Desconto</span><span>− ${UI.formatBRL(orc.desconto)}</span>
             </div>` : ''}
             <div style="display:flex;justify-content:space-between;padding:10px 0;
-              font-family:var(--font-titulo);font-size:18px;font-weight:800;color:#C5A04A">
+              font-family:var(--font-titulo);font-size:18px;font-weight:800;color:#3DB53C">
               <span>TOTAL</span><span>${UI.formatBRL(orc.total)}</span>
             </div>
           </div>
@@ -695,7 +976,7 @@ const Orcamentos = (() => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
     const PRETO   = [26, 26, 26];
-    const DOURADO = [197, 160, 74];
+    const VERDE   = [61, 181, 60];
     const OFFWHITE = [248, 246, 242];
     const GRAFITE  = [74, 74, 74];
     const CINZA    = [200, 200, 200];
@@ -713,7 +994,7 @@ const Orcamentos = (() => {
     // Nome da empresa
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.setTextColor(...DOURADO);
+    doc.setTextColor(...VERDE);
     doc.text('Reverse Engenharia', 40, 12);
     doc.setFontSize(8);
     doc.setTextColor(...CINZA);
@@ -750,7 +1031,7 @@ const Orcamentos = (() => {
     doc.setFillColor(...OFFWHITE);
     doc.roundedRect(13, y, 86, 32, 2, 2, 'F');
     doc.roundedRect(111, y, 86, 32, 2, 2, 'F');
-    doc.setFillColor(...DOURADO);
+    doc.setFillColor(...VERDE);
     doc.rect(13, y, 2, 32, 'F');
     doc.setFillColor(...GRAFITE);
     doc.rect(111, y, 2, 32, 'F');

@@ -1,39 +1,53 @@
 /**
- * Portal JOTEC — Módulo Prospecção
- * Google Apps Script Web App = API JSON para o Google Sheets
+ * Portal Reverse Engenharia — API Google Apps Script
+ * Versão 2.0.0 — suporta Prospecção + Contas a Pagar
  *
- * COMO USAR:
- *   1. Abra sua planilha no Google Sheets
+ * COMO USAR (primeira vez):
+ *   1. Abra sua planilha "Reverse Engenharia — Portal" no Google Sheets
  *   2. Extensões → Apps Script
- *   3. Cole TODO este arquivo (substituindo o que estiver lá)
- *   4. Salve (Ctrl+S) e dê um nome ao projeto (ex: "JOTEC Prospeccao API")
- *   5. Implantar → Novo deploy → Tipo: App da Web
- *        - Executar como: Eu (sua conta)
- *        - Quem pode acessar: Qualquer pessoa
- *      → Implantar → autorize quando pedir
- *   6. Copie a "URL do app da Web" e cole na aba Configurações do Portal
+ *   3. Cole TODO este arquivo (substitua o que estiver lá)
+ *   4. Salve (Ctrl+S) e nomeie o projeto (ex: "Reverse Engenharia API")
+ *   5. Selecione a função `setupPlanilha` e clique ▶ Executar
+ *      (autorize quando pedir — isso cria as abas com formatação)
+ *   6. Implantar → Novo deploy → Tipo: App da Web
+ *        Executar como: Eu (sua conta)
+ *        Quem pode acessar: Qualquer pessoa
+ *      → Implantar → copie a URL do app da Web
+ *   7. Cole a URL na aba Prospecção → Configurações do Portal
+ *      (a mesma URL serve para Prospecção E Contas a Pagar)
  *
- * Endpoints:
- *   GET  ?action=ping                        → {ok: true, version: "..."}
- *   GET  ?action=list                        → {ok: true, data: [...contatos]}
- *   POST {action: "create", ...campos}       → {ok: true, data: {id, ...}}
- *   POST {action: "update", id, ...campos}   → {ok: true, data: {id, ...}}
- *   POST {action: "delete", id}              → {ok: true} (soft delete: ativo = FALSE)
+ * Endpoints GET:
+ *   ?action=ping                          → {ok:true, version}
+ *   ?action=list                          → lista Prospecção
+ *   ?action=list&sheet=ContasPagar        → lista Contas a Pagar
  *
- * Schema da aba "Prospeccao" (linha 1 = cabeçalho — não mude a ordem das colunas):
- *   id | empresa | contato_nome | contato_cargo | telefone | email | cidade | uf |
- *   segmento | tipo_servico | origem | status | website | linkedin | instagram |
- *   proximo_followup | historico | obs | criado_em | atualizado_em | ativo
+ * Endpoints POST (body JSON):
+ *   {action:"create", ...campos}                     → cria em Prospecção
+ *   {action:"create", sheet:"ContasPagar", ...campos} → cria em ContasPagar
+ *   {action:"update", id, ...campos}                 → atualiza
+ *   {action:"delete", id}                            → soft delete (ativo=FALSE)
  */
 
-const VERSION = '1.0.0';
-const SHEET_NAME = 'Prospeccao';
+// ============================================================
+// SCHEMAS
+// ============================================================
 
-const COLUMNS = [
+const VERSION = '2.0.0';
+
+const SHEET_PROSP = 'Prospeccao';
+const SHEET_CP    = 'ContasPagar';
+
+const COLS_PROSP = [
   'id', 'empresa', 'contato_nome', 'contato_cargo', 'telefone', 'email',
   'cidade', 'uf', 'segmento', 'tipo_servico', 'origem', 'status',
   'website', 'linkedin', 'instagram', 'proximo_followup', 'historico',
-  'obs', 'criado_em', 'atualizado_em', 'ativo'
+  'obs', 'criado_em', 'atualizado_em', 'ativo',
+];
+
+const COLS_CP = [
+  'id', 'descricao', 'categoria', 'fornecedor', 'valor', 'vencimento',
+  'status', 'pago_em', 'forma_pgto', 'recorrencia', 'parcela_nr',
+  'parcela_total', 'anexo_url', 'obs', 'criado_em', 'atualizado_em', 'ativo',
 ];
 
 // ============================================================
@@ -42,256 +56,312 @@ const COLUMNS = [
 
 function doGet(e) {
   try {
-    const action = (e && e.parameter && e.parameter.action) || 'ping';
-    if (action === 'ping') return jsonOut({ ok: true, version: VERSION });
-    if (action === 'list') return jsonOut({ ok: true, data: listAtivos() });
-    return jsonOut({ ok: false, error: 'Ação desconhecida: ' + action }, 400);
-  } catch (err) {
-    return jsonOut({ ok: false, error: String(err && err.message || err) }, 500);
-  }
+    var p      = (e && e.parameter) || {};
+    var action = p.action || 'ping';
+    if (action === 'ping') return _ok({ version: VERSION });
+    if (action === 'list') {
+      var ctx = _ctx(p.sheet);
+      return _ok({ data: _listAtivos(ctx.sheet, ctx.cols) });
+    }
+    return _err('Ação desconhecida: ' + action);
+  } catch (ex) { return _err(ex); }
 }
 
 function doPost(e) {
   try {
-    const body = parseBody(e);
-    const action = body.action;
-    if (action === 'create') return jsonOut({ ok: true, data: createRow(body) });
-    if (action === 'update') return jsonOut({ ok: true, data: updateRow(body) });
-    if (action === 'delete') {
-      deleteRow(body);
-      return jsonOut({ ok: true });
-    }
-    return jsonOut({ ok: false, error: 'Ação desconhecida: ' + action }, 400);
-  } catch (err) {
-    return jsonOut({ ok: false, error: String(err && err.message || err) }, 500);
-  }
+    var body   = _parseBody(e);
+    var action = body.action;
+    var ctx    = _ctx(body.sheet);
+    if (action === 'create') return _ok({ data: _create(ctx.sheet, ctx.cols, body) });
+    if (action === 'update') return _ok({ data: _update(ctx.sheet, ctx.cols, body) });
+    if (action === 'delete') { _delete(ctx.sheet, ctx.cols, body); return _ok({}); }
+    return _err('Ação desconhecida: ' + action);
+  } catch (ex) { return _err(ex); }
+}
+
+function _ctx(sheetParam) {
+  if (sheetParam === SHEET_CP) return { sheet: SHEET_CP, cols: COLS_CP };
+  return { sheet: SHEET_PROSP, cols: COLS_PROSP };
 }
 
 // ============================================================
-// AÇÕES
+// CRUD GENÉRICO
 // ============================================================
 
-function listAtivos() {
-  const sheet = getSheet();
-  const lastRow = sheet.getLastRow();
+function _listAtivos(sheetName, cols) {
+  var sheet   = _getSheet(sheetName, cols);
+  var lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
-  const values = sheet.getRange(2, 1, lastRow - 1, COLUMNS.length).getValues();
-  const out = [];
-  for (let i = 0; i < values.length; i++) {
-    const obj = rowToObj(values[i]);
-    if (obj.ativo !== false && String(obj.ativo).toUpperCase() !== 'FALSE') {
-      out.push(obj);
-    }
+  var values  = sheet.getRange(2, 1, lastRow - 1, cols.length).getValues();
+  var out = [];
+  for (var i = 0; i < values.length; i++) {
+    var obj = _rowToObj(values[i], cols);
+    if (obj.ativo !== false && String(obj.ativo).toUpperCase() !== 'FALSE') out.push(obj);
   }
   return out;
 }
 
-function createRow(payload) {
-  if (!payload.empresa && !payload.contato_nome && !payload.telefone) {
-    throw new Error('Informe ao menos empresa, contato ou telefone');
+function _create(sheetName, cols, payload) {
+  var sheet = _getSheet(sheetName, cols);
+  var now   = _now();
+  var rec   = {};
+  for (var i = 0; i < cols.length; i++) rec[cols[i]] = '';
+  for (var j = 0; j < cols.length; j++) {
+    if (payload[cols[j]] !== undefined && payload[cols[j]] !== null) rec[cols[j]] = payload[cols[j]];
   }
-  const sheet = getSheet();
-  const id = nextId(sheet);
-  const now = nowBR();
-  const record = {};
-  COLUMNS.forEach(function (c) { record[c] = ''; });
-  COLUMNS.forEach(function (c) {
-    if (payload[c] !== undefined && payload[c] !== null) record[c] = payload[c];
-  });
-  record.id = id;
-  record.criado_em = now;
-  record.atualizado_em = now;
-  record.ativo = true;
-  sheet.appendRow(COLUMNS.map(function (c) { return record[c]; }));
-  return record;
+  // Para ContasPagar o ID vem do portal; para Prospecção é auto-gerado
+  if (payload.id && Number(payload.id) > 0) {
+    rec.id = Number(payload.id);
+  } else {
+    rec.id = _nextId(sheet);
+  }
+  rec.criado_em    = payload.criado_em    || now;
+  rec.atualizado_em = now;
+  rec.ativo        = true;
+  sheet.appendRow(cols.map(function(c) { return rec[c]; }));
+  return rec;
 }
 
-function updateRow(payload) {
-  const id = Number(payload.id);
+function _update(sheetName, cols, payload) {
+  var id = Number(payload.id);
   if (!id) throw new Error('id é obrigatório no update');
-  const sheet = getSheet();
-  const rowIndex = findRowIndexById(sheet, id);
-  if (rowIndex < 0) throw new Error('id não encontrado: ' + id);
-  const current = rowToObj(sheet.getRange(rowIndex, 1, 1, COLUMNS.length).getValues()[0]);
-  COLUMNS.forEach(function (c) {
-    if (c === 'id' || c === 'criado_em') return;
-    if (payload[c] !== undefined) current[c] = payload[c];
-  });
-  current.atualizado_em = nowBR();
-  sheet.getRange(rowIndex, 1, 1, COLUMNS.length)
-    .setValues([COLUMNS.map(function (c) { return current[c]; })]);
-  return current;
+  var sheet    = _getSheet(sheetName, cols);
+  var rowIndex = _findRow(sheet, id);
+  if (rowIndex < 0) {
+    // Não encontrado — cria (acontece quando push-on-save falhou antes)
+    return _create(sheetName, cols, payload);
+  }
+  var cur = _rowToObj(sheet.getRange(rowIndex, 1, 1, cols.length).getValues()[0], cols);
+  for (var i = 0; i < cols.length; i++) {
+    var c = cols[i];
+    if (c === 'id' || c === 'criado_em') continue;
+    if (payload[c] !== undefined) cur[c] = payload[c];
+  }
+  cur.atualizado_em = _now();
+  sheet.getRange(rowIndex, 1, 1, cols.length)
+    .setValues([cols.map(function(c) { return cur[c]; })]);
+  return cur;
 }
 
-function deleteRow(payload) {
-  const id = Number(payload.id);
+function _delete(sheetName, cols, payload) {
+  var id = Number(payload.id);
   if (!id) throw new Error('id é obrigatório no delete');
-  const sheet = getSheet();
-  const rowIndex = findRowIndexById(sheet, id);
-  if (rowIndex < 0) throw new Error('id não encontrado: ' + id);
-  const ativoCol = COLUMNS.indexOf('ativo') + 1;
-  const atualizadoCol = COLUMNS.indexOf('atualizado_em') + 1;
-  sheet.getRange(rowIndex, ativoCol).setValue(false);
-  sheet.getRange(rowIndex, atualizadoCol).setValue(nowBR());
+  var sheet    = _getSheet(sheetName, cols);
+  var rowIndex = _findRow(sheet, id);
+  if (rowIndex < 0) return; // idempotente — já não existe
+  var ativoIdx    = cols.indexOf('ativo') + 1;
+  var updatedIdx  = cols.indexOf('atualizado_em') + 1;
+  sheet.getRange(rowIndex, ativoIdx).setValue(false);
+  if (updatedIdx > 0) sheet.getRange(rowIndex, updatedIdx).setValue(_now());
 }
 
 // ============================================================
 // HELPERS
 // ============================================================
 
-function getSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(SHEET_NAME);
+function _getSheet(name, cols) {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(name);
   if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME);
-    sheet.getRange(1, 1, 1, COLUMNS.length).setValues([COLUMNS]);
+    sheet = ss.insertSheet(name);
+    sheet.getRange(1, 1, 1, cols.length).setValues([cols]);
     sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, cols.length)
+      .setFontWeight('bold')
+      .setBackground('#1A1A1A')
+      .setFontColor('#C5A04A');
   }
   return sheet;
 }
 
-function rowToObj(row) {
-  const obj = {};
-  for (let i = 0; i < COLUMNS.length; i++) {
-    let v = row[i];
-    if (v instanceof Date) v = formatDate(v);
-    obj[COLUMNS[i]] = v;
+function _rowToObj(row, cols) {
+  var obj = {};
+  for (var i = 0; i < cols.length; i++) {
+    var v = row[i];
+    if (v instanceof Date) v = _fmtDate(v);
+    obj[cols[i]] = v;
   }
-  obj.id = Number(obj.id) || obj.id;
+  obj.id    = Number(obj.id) || obj.id;
   obj.ativo = (obj.ativo === true || String(obj.ativo).toUpperCase() === 'TRUE');
   return obj;
 }
 
-function findRowIndexById(sheet, id) {
-  const lastRow = sheet.getLastRow();
+function _findRow(sheet, id) {
+  var lastRow = sheet.getLastRow();
   if (lastRow < 2) return -1;
-  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-  for (let i = 0; i < ids.length; i++) {
+  var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) {
     if (Number(ids[i][0]) === Number(id)) return i + 2;
   }
   return -1;
 }
 
-function nextId(sheet) {
-  const lastRow = sheet.getLastRow();
+function _nextId(sheet) {
+  var lastRow = sheet.getLastRow();
   if (lastRow < 2) return 1;
-  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-  let max = 0;
-  for (let i = 0; i < ids.length; i++) {
-    const n = Number(ids[i][0]);
+  var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  var max = 0;
+  for (var i = 0; i < ids.length; i++) {
+    var n = Number(ids[i][0]);
     if (n > max) max = n;
   }
   return max + 1;
 }
 
-function nowBR() {
-  return formatDate(new Date());
-}
-
-function formatDate(d) {
-  // ISO local sem timezone shift: YYYY-MM-DD HH:mm:ss
-  const pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+function _fmtDate(d) {
+  var pad = function(n) { return n < 10 ? '0' + n : '' + n; };
   return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
     ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
 }
 
-function parseBody(e) {
+function _now() { return _fmtDate(new Date()); }
+
+function _parseBody(e) {
   if (!e) return {};
   if (e.postData && e.postData.contents) {
     try { return JSON.parse(e.postData.contents); } catch (_) {}
   }
-  // fallback: form-urlencoded ou query string
   return e.parameter || {};
 }
 
-function jsonOut(obj, status) {
-  // Apps Script ContentService não suporta status codes customizados,
-  // mas o ok:false no JSON já comunica erro pro cliente.
-  const out = ContentService.createTextOutput(JSON.stringify(obj));
+function _ok(data) {
+  return _jsonOut(Object.assign({ ok: true }, data));
+}
+
+function _err(ex) {
+  var msg = (ex && ex.message) ? ex.message : String(ex);
+  return _jsonOut({ ok: false, error: msg });
+}
+
+function _jsonOut(obj) {
+  var out = ContentService.createTextOutput(JSON.stringify(obj));
   out.setMimeType(ContentService.MimeType.JSON);
   return out;
 }
 
 // ============================================================
-// SETUP INICIAL — rode UMA VEZ pelo editor do Apps Script
+// SETUP — rode setupPlanilha() UMA VEZ pelo editor
 // ============================================================
 
 /**
- * Cria a aba "Prospeccao" com cabeçalho, congela linha 1,
- * aplica validações (dropdowns) e formatação condicional por status.
- * RODE UMA VEZ: selecione esta função no editor e clique Executar.
+ * Cria e formata as abas "Prospeccao" e "ContasPagar".
+ * Selecione esta função no editor do Apps Script e clique Executar.
  */
 function setupPlanilha() {
-  const sheet = getSheet();
+  _setupProspeccao();
+  _setupContasPagar();
+  SpreadsheetApp.getActive().toast(
+    'Abas Prospeccao e ContasPagar configuradas! Agora implante como Web App.',
+    'Reverse Engenharia', 8
+  );
+}
 
-  // garante cabeçalho
-  sheet.getRange(1, 1, 1, COLUMNS.length).setValues([COLUMNS]);
-  sheet.setFrozenRows(1);
-  sheet.getRange(1, 1, 1, COLUMNS.length)
-    .setFontWeight('bold')
-    .setBackground('#1A1A1A')
-    .setFontColor('#C5A04A');
+function _setupProspeccao() {
+  var sheet = _getSheet(SHEET_PROSP, COLS_PROSP);
 
-  // larguras razoáveis
-  const widths = {
+  // Larguras
+  var widths = {
     empresa: 200, contato_nome: 150, contato_cargo: 130, telefone: 130,
     email: 200, cidade: 130, segmento: 140, tipo_servico: 180,
     origem: 120, status: 150, website: 180, linkedin: 180, instagram: 150,
     proximo_followup: 130, historico: 350, obs: 250,
-    criado_em: 150, atualizado_em: 150
+    criado_em: 150, atualizado_em: 150,
   };
-  Object.keys(widths).forEach(function (col) {
-    const idx = COLUMNS.indexOf(col) + 1;
+  Object.keys(widths).forEach(function(col) {
+    var idx = COLS_PROSP.indexOf(col) + 1;
     if (idx > 0) sheet.setColumnWidth(idx, widths[col]);
   });
 
-  // dropdown ORIGEM
-  const origens = ['LinkedIn', 'Google Maps', 'Indicação', 'Evento', 'Site', 'Outro'];
-  const origemCol = COLUMNS.indexOf('origem') + 1;
-  const rangeOrigem = sheet.getRange(2, origemCol, 1000, 1);
-  rangeOrigem.setDataValidation(
+  // Dropdown ORIGEM
+  var origens = ['LinkedIn', 'Google Maps', 'Indicação', 'Evento', 'Site', 'Outro'];
+  sheet.getRange(2, COLS_PROSP.indexOf('origem') + 1, 1000, 1).setDataValidation(
     SpreadsheetApp.newDataValidation().requireValueInList(origens, true).build()
   );
 
-  // dropdown STATUS
-  const statuses = ['Novo', 'Pesquisado', '1ª abordagem', 'Em conversa',
+  // Dropdown STATUS
+  var statuses = ['Novo', 'Pesquisado', '1ª abordagem', 'Em conversa',
     'Proposta enviada', 'Quente', 'Frio', 'Convertido', 'Perdido'];
-  const statusCol = COLUMNS.indexOf('status') + 1;
-  const rangeStatus = sheet.getRange(2, statusCol, 1000, 1);
-  rangeStatus.setDataValidation(
+  var statusRange = sheet.getRange(2, COLS_PROSP.indexOf('status') + 1, 1000, 1);
+  statusRange.setDataValidation(
     SpreadsheetApp.newDataValidation().requireValueInList(statuses, true).build()
   );
 
-  // formatação condicional STATUS (cores)
-  const corStatus = {
-    'Novo': '#E8F0FE',
-    'Pesquisado': '#D2E3FC',
-    '1ª abordagem': '#FEEFC3',
-    'Em conversa': '#FDE293',
-    'Proposta enviada': '#FBBC04',
-    'Quente': '#EA4335',
-    'Frio': '#BDC1C6',
-    'Convertido': '#34A853',
-    'Perdido': '#5F6368'
+  // Formatação condicional STATUS
+  var corStatus = {
+    'Novo': '#E8F0FE', 'Pesquisado': '#D2E3FC', '1ª abordagem': '#FEEFC3',
+    'Em conversa': '#FDE293', 'Proposta enviada': '#FBBC04',
+    'Quente': '#EA4335', 'Frio': '#BDC1C6', 'Convertido': '#34A853', 'Perdido': '#5F6368',
   };
-  const rules = sheet.getConditionalFormatRules();
-  Object.keys(corStatus).forEach(function (s) {
-    const rule = SpreadsheetApp.newConditionalFormatRule()
-      .whenTextEqualTo(s)
-      .setBackground(corStatus[s])
-      .setFontColor(s === 'Quente' || s === 'Convertido' || s === 'Perdido' ? '#FFFFFF' : '#1A1A1A')
-      .setRanges([rangeStatus])
-      .build();
-    rules.push(rule);
+  var rules = sheet.getConditionalFormatRules();
+  Object.keys(corStatus).forEach(function(s) {
+    rules.push(
+      SpreadsheetApp.newConditionalFormatRule()
+        .whenTextEqualTo(s)
+        .setBackground(corStatus[s])
+        .setFontColor(['Quente', 'Convertido', 'Perdido'].indexOf(s) >= 0 ? '#FFFFFF' : '#1A1A1A')
+        .setRanges([statusRange])
+        .build()
+    );
   });
   sheet.setConditionalFormatRules(rules);
 
-  // dropdown ATIVO
-  const ativoCol = COLUMNS.indexOf('ativo') + 1;
-  const rangeAtivo = sheet.getRange(2, ativoCol, 1000, 1);
-  rangeAtivo.setDataValidation(
+  // Dropdown ATIVO
+  sheet.getRange(2, COLS_PROSP.indexOf('ativo') + 1, 1000, 1).setDataValidation(
     SpreadsheetApp.newDataValidation().requireValueInList(['TRUE', 'FALSE'], true).build()
   );
+}
 
-  SpreadsheetApp.getActive().toast('Planilha configurada! Já pode implantar o app da Web.', 'JOTEC', 5);
+function _setupContasPagar() {
+  var sheet = _getSheet(SHEET_CP, COLS_CP);
+
+  // Larguras
+  var widths = {
+    descricao: 280, categoria: 120, fornecedor: 180, valor: 100,
+    vencimento: 120, status: 110, pago_em: 120, forma_pgto: 130,
+    recorrencia: 100, parcela_nr: 80, parcela_total: 80,
+    anexo_url: 200, obs: 250, criado_em: 150, atualizado_em: 150,
+  };
+  Object.keys(widths).forEach(function(col) {
+    var idx = COLS_CP.indexOf(col) + 1;
+    if (idx > 0) sheet.setColumnWidth(idx, widths[col]);
+  });
+
+  // Dropdown CATEGORIA
+  var cats = ['Fornecedor', 'Salário', 'Aluguel', 'Software', 'Impostos', 'Material', 'Frete', 'Outros'];
+  sheet.getRange(2, COLS_CP.indexOf('categoria') + 1, 1000, 1).setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList(cats, true).build()
+  );
+
+  // Dropdown STATUS
+  var statuses = ['pendente', 'pago', 'atrasado'];
+  var statusRange = sheet.getRange(2, COLS_CP.indexOf('status') + 1, 1000, 1);
+  statusRange.setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList(statuses, true).build()
+  );
+
+  // Formatação condicional STATUS
+  var corStatus = { 'pago': '#34A853', 'atrasado': '#EA4335', 'pendente': '#FEEFC3' };
+  var cpRules = sheet.getConditionalFormatRules();
+  Object.keys(corStatus).forEach(function(s) {
+    cpRules.push(
+      SpreadsheetApp.newConditionalFormatRule()
+        .whenTextEqualTo(s)
+        .setBackground(corStatus[s])
+        .setFontColor(s === 'pago' || s === 'atrasado' ? '#FFFFFF' : '#1A1A1A')
+        .setRanges([statusRange])
+        .build()
+    );
+  });
+  sheet.setConditionalFormatRules(cpRules);
+
+  // Dropdown FORMA_PGTO
+  var formas = ['PIX', 'Boleto', 'Cartão', 'Dinheiro', 'Transferência'];
+  sheet.getRange(2, COLS_CP.indexOf('forma_pgto') + 1, 1000, 1).setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList(formas, true).build()
+  );
+
+  // Dropdown ATIVO
+  sheet.getRange(2, COLS_CP.indexOf('ativo') + 1, 1000, 1).setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList(['TRUE', 'FALSE'], true).build()
+  );
 }

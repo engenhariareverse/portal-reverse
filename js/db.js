@@ -1,6 +1,6 @@
 const DB = (() => {
   const NAME = 'reverse_portal';
-  const VERSION = 3;
+  const VERSION = 4;
   let _db = null;
 
   const SCHEMA = {
@@ -83,6 +83,14 @@ const DB = (() => {
       indexes: [
         { name: 'action',    keyPath: 'action' },
         { name: 'criado_em', keyPath: 'criado_em' },
+      ],
+    },
+    contas_pagar: {
+      keyPath: 'id', autoIncrement: true,
+      indexes: [
+        { name: 'status',     keyPath: 'status' },
+        { name: 'vencimento', keyPath: 'vencimento' },
+        { name: 'categoria',  keyPath: 'categoria' },
       ],
     },
   };

@@ -87,13 +87,19 @@ const Servicos = (() => {
               </div>
               <div class="preco-item preco-item--ideal">
                 <span class="preco-label">Ideal ★</span>
-                <span class="preco-val preco-val--dourado">${UI.formatBRL(s.preco_ideal)}</span>
+                <span class="preco-val preco-val--verde-reverse">${UI.formatBRL(s.preco_ideal)}</span>
               </div>
               <div class="preco-item">
                 <span class="preco-label">Máximo</span>
                 <span class="preco-val">${UI.formatBRL(s.preco_max)}</span>
               </div>
             </div>
+            ${(s.imposto_nf || s.imposto_art) ? `
+            <div class="servico-impostos">
+              ${s.imposto_nf  ? `<span class="imposto-tag">NF ${s.imposto_nf}%</span>` : ''}
+              ${s.imposto_art ? `<span class="imposto-tag imposto-tag--art${s.art_padrao ? ' imposto-tag--ativo' : ''}">ART ${s.imposto_art}%</span>` : ''}
+              ${s.custos_fixos ? `<span class="imposto-tag" style="background:var(--grafite-light);color:var(--text-secondary);border-color:var(--grafite-border)" title="${esc(s.custos_fixos)}">Custos fixos</span>` : ''}
+            </div>` : ''}
           </div>
         `).join('')}
       </div>`;
@@ -144,6 +150,33 @@ const Servicos = (() => {
             <input type="number" name="preco_max" class="input" step="0.01" min="0"
               value="${servico?.preco_max || ''}" placeholder="0,00">
           </div>
+
+          <div class="form-section-divider"><span>Impostos e Custos Internos</span></div>
+          <div class="form-section-note form-group--full">
+            ⚠️ Estes valores <strong>não aparecem no orçamento do cliente</strong>. São usados apenas no Memorial de Cálculo interno para calcular lucro e margem.
+          </div>
+
+          <div class="form-group">
+            <label>% NF — Nota Fiscal</label>
+            <input type="number" name="imposto_nf" class="input" step="0.01" min="0" max="100"
+              value="${servico?.imposto_nf || ''}" placeholder="Ex: 7">
+          </div>
+          <div class="form-group">
+            <label>% ART</label>
+            <input type="number" name="imposto_art" class="input" step="0.01" min="0" max="100"
+              value="${servico?.imposto_art || ''}" placeholder="Ex: 11">
+          </div>
+          <div class="form-group form-group--full">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500">
+              <input type="checkbox" name="art_padrao" value="1" ${servico?.art_padrao ? 'checked' : ''}>
+              ART ativa por padrão ao gerar orçamento
+            </label>
+          </div>
+          <div class="form-group form-group--full">
+            <label>Custos Fixos (referência)</label>
+            <textarea name="custos_fixos" class="input textarea" rows="2"
+              placeholder="Ex: Nota MEI: 100, Frete: 90, Deslocamento: 50">${v('custos_fixos')}</textarea>
+          </div>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn--ghost" onclick="UI.closeModal()">Cancelar</button>
@@ -161,6 +194,10 @@ const Servicos = (() => {
         data.preco_min   = parseFloat(data.preco_min)   || 0;
         data.preco_ideal = parseFloat(data.preco_ideal) || 0;
         data.preco_max   = parseFloat(data.preco_max)   || 0;
+        data.imposto_nf  = parseFloat(data.imposto_nf)  || 0;
+        data.imposto_art = parseFloat(data.imposto_art) || 0;
+        data.art_padrao  = data.art_padrao === '1';
+        data.custos_fixos = (data.custos_fixos || '').trim();
 
         if (edit) {
           await DB.put('servicos', { ...servico, ...data });

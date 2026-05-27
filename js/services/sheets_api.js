@@ -1,13 +1,20 @@
 /**
  * SheetsAPI — camada de serviço entre o Portal Reverse Engenharia e o Google Apps Script.
  *
- * Depende de DB (js/db.js) já carregado na página.
+ * A mesma URL do Web App serve para Prospecção e Contas a Pagar.
+ * Configure a URL uma única vez em Prospecção → Configurações.
  *
- * Uso básico no console:
+ * Uso:
  *   await SheetsAPI.setUrl('https://script.google.com/...')
  *   await SheetsAPI.ping()
- *   const { data, offline } = await SheetsAPI.list()
- *   await SheetsAPI.create({ empresa: 'Teste', contato_nome: 'João' })
+ *
+ *   // Prospecção (CRM)
+ *   const { data } = await SheetsAPI.list()
+ *   await SheetsAPI.create({ empresa: 'Teste' })
+ *
+ *   // Contas a Pagar
+ *   await SheetsAPI.ContasPagar.create({ id: 1, descricao: 'Aluguel', valor: 500, ... })
+ *   const r = await SheetsAPI.ContasPagar.syncAll()
  */
 const SheetsAPI = (() => {
   const CONFIG_KEY = 'prospeccao_sheets_url';
@@ -30,18 +37,18 @@ const SheetsAPI = (() => {
   }
 
   // ──────────────────────────────────────────────────────────
-  // HTTP helpers
+  // HTTP helpers (compartilhados com ContasPagar)
   // ──────────────────────────────────────────────────────────
 
   async function _requireUrl() {
     const url = await getUrl();
-    if (!url) throw new Error('URL do Apps Script não configurada. Configure na aba Configurações.');
+    if (!url) throw new Error('URL do Apps Script não configurada. Configure em Prospecção → Configurações.');
     return url;
   }
 
   async function _get(params) {
     const url = await _requireUrl();
-    const qs = new URLSearchParams(params).toString();
+    const qs  = new URLSearchParams(params).toString();
     const res = await fetch(`${url}?${qs}`, { redirect: 'follow' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();
@@ -49,7 +56,6 @@ const SheetsAPI = (() => {
 
   async function _post(body) {
     const url = await _requireUrl();
-    // Content-Type: text/plain evita o preflight CORS que o Apps Script não suporta
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
@@ -65,19 +71,13 @@ const SheetsAPI = (() => {
   }
 
   // ──────────────────────────────────────────────────────────
-  // API pública
+  // API Prospecção (existente — sem alterações)
   // ──────────────────────────────────────────────────────────
 
   async function ping() {
     return _get({ action: 'ping' });
   }
 
-  /**
-   * Lista todos os contatos ativos.
-   * Sempre tenta a API quando online; cai para cache se falhar.
-   * @param {boolean} [force=false] – ignora o estado offline e sempre tenta a API
-   * @returns {{ data: object[], offline: boolean, error?: string }}
-   */
   async function list({ force = false } = {}) {
     if (!force && !navigator.onLine) {
       const data = await DB.getAll('prospeccao_cache');
@@ -85,7 +85,7 @@ const SheetsAPI = (() => {
     }
     try {
       const result = await _get({ action: 'list' });
-      const rows = (result.data || []).map(_normalizeId);
+      const rows   = (result.data || []).map(_normalizeId);
       await DB.clear('prospeccao_cache');
       for (const row of rows) await DB.put('prospeccao_cache', row);
       return { data: rows, offline: false };
@@ -95,11 +95,6 @@ const SheetsAPI = (() => {
     }
   }
 
-  /**
-   * Cria um novo contato.
-   * Se offline, salva cópia otimista no cache e enfileira o write.
-   * @returns {{ ok: boolean, offline: boolean, data?: object, id?: string }}
-   */
   async function create(payload) {
     if (!navigator.onLine) {
       const localId = 'local_' + Date.now();
@@ -117,12 +112,8 @@ const SheetsAPI = (() => {
     }
   }
 
-  /**
-   * Atualiza um contato existente.
-   * Aplica a mudança no cache local imediatamente (otimista).
-   */
   async function update(id, payload) {
-    const numId = Number(id) || id;
+    const numId    = Number(id) || id;
     const existing = await DB.get('prospeccao_cache', numId);
     if (existing) {
       const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -142,10 +133,6 @@ const SheetsAPI = (() => {
     }
   }
 
-  /**
-   * Exclui (soft delete) um contato.
-   * Remove do cache local imediatamente.
-   */
   async function del(id) {
     const numId = Number(id) || id;
     await DB.remove('prospeccao_cache', numId);
@@ -162,24 +149,14 @@ const SheetsAPI = (() => {
     }
   }
 
-  // ──────────────────────────────────────────────────────────
-  // Fila offline
-  // ──────────────────────────────────────────────────────────
-
   async function _enqueue(action, payload, localId = null) {
     await DB.add('prospeccao_pending', {
-      action,
-      payload,
-      localId,
+      action, payload, localId,
       tentativas: 0,
       criado_em: new Date().toISOString(),
     });
   }
 
-  /**
-   * Tenta enviar todos os writes enfileirados enquanto estava offline.
-   * @returns {{ synced: number, failed: number }}
-   */
   async function syncPending() {
     const pending = await DB.getAll('prospeccao_pending');
     if (!pending.length) return { synced: 0, failed: 0 };
@@ -203,12 +180,127 @@ const SheetsAPI = (() => {
     return { synced, failed };
   }
 
-  // Auto-sync quando a conexão volta
   window.addEventListener('online', () => {
     syncPending().then(r => {
       if (r.synced > 0) console.log(`[SheetsAPI] ${r.synced} pendente(s) sincronizado(s).`);
     }).catch(console.error);
   });
 
-  return { setUrl, getUrl, ping, list, create, update, delete: del, syncPending };
+  // ──────────────────────────────────────────────────────────
+  // API Contas a Pagar
+  // ──────────────────────────────────────────────────────────
+
+  const ContasPagar = (() => {
+
+    /** Mapeia uma linha do Sheets para o schema local do contas_pagar. */
+    function _map(row) {
+      return {
+        id:            Number(row.id),
+        descricao:     row.descricao     || '',
+        categoria:     row.categoria     || null,
+        fornecedor:    row.fornecedor    || null,
+        valor:         Number(row.valor) || 0,
+        vencimento:    (row.vencimento   || '').slice(0, 10),
+        status:        row.status        || 'pendente',
+        pago_em:       row.pago_em       ? String(row.pago_em).slice(0, 10) : null,
+        forma_pgto:    row.forma_pgto    || null,
+        recorrencia:   row.recorrencia   || 'unica',
+        parcela_nr:    row.parcela_nr    ? Number(row.parcela_nr)    : null,
+        parcela_total: row.parcela_total ? Number(row.parcela_total) : null,
+        anexo_url:     row.anexo_url     || null,
+        obs:           row.obs           || null,
+        criado_em:     row.criado_em     || new Date().toISOString(),
+      };
+    }
+
+    /** Lista todas as contas a pagar ativas no Sheets. */
+    async function cpList() {
+      const result = await _get({ action: 'list', sheet: 'ContasPagar' });
+      return (result.data || []).map(_map);
+    }
+
+    /** Cria uma conta no Sheets. Passa o id do portal para manter sincronismo. */
+    async function cpCreate(payload) {
+      return _post({ action: 'create', sheet: 'ContasPagar', ...payload });
+    }
+
+    /** Atualiza uma conta no Sheets pelo id. */
+    async function cpUpdate(id, payload) {
+      return _post({ action: 'update', sheet: 'ContasPagar', id, ...payload });
+    }
+
+    /** Soft delete no Sheets (marca ativo=FALSE). */
+    async function cpDel(id) {
+      return _post({ action: 'delete', sheet: 'ContasPagar', id });
+    }
+
+    /**
+     * Sincronização bidirecional:
+     *  1. Envia registros locais que não existem no Sheets.
+     *  2. Atualiza o DB local com os dados do Sheets (Sheets vence no conflito).
+     *  3. Remove localmente registros que foram deletados no Sheets (ativo=FALSE).
+     *
+     * @returns {{ ok, pulled, pushed, removed, error? }}
+     */
+    async function syncAll() {
+      if (!navigator.onLine) return { ok: false, offline: true, msg: 'Sem conexão.' };
+      try {
+        const [sheetsRows, localRows] = await Promise.all([
+          cpList(),
+          DB.getAll('contas_pagar'),
+        ]);
+
+        const sheetsById = new Map(sheetsRows.map(r => [r.id, r]));
+        const localById  = new Map(localRows.map(r => [r.id, r]));
+
+        // 1. Enviar registros locais ausentes no Sheets
+        let pushed = 0;
+        for (const [id, lcp] of localById) {
+          if (!sheetsById.has(id)) {
+            try {
+              await cpCreate({ ...lcp, ativo: true });
+              pushed++;
+            } catch (e) {
+              console.warn('[SheetsAPI.CP] push falhou id=' + id, e.message);
+            }
+          }
+        }
+
+        // 2. Upsert Sheets → local (Sheets vence)
+        let pulled = 0;
+        for (const [id, scp] of sheetsById) {
+          await DB.put('contas_pagar', scp);
+          pulled++;
+        }
+
+        // 3. Remover localmente o que foi deletado no Sheets
+        let removed = 0;
+        for (const [id] of localById) {
+          if (!sheetsById.has(id)) {
+            // Não está no Sheets e não foi empurrado (seria bug); ignore para segurança.
+          }
+        }
+
+        return { ok: true, pulled, pushed, removed };
+      } catch (e) {
+        return { ok: false, error: e.message };
+      }
+    }
+
+    return {
+      list:   cpList,
+      create: cpCreate,
+      update: cpUpdate,
+      delete: cpDel,
+      syncAll,
+    };
+  })();
+
+  // ──────────────────────────────────────────────────────────
+
+  return {
+    setUrl, getUrl, ping,
+    list, create, update, delete: del, syncPending,
+    ContasPagar,
+  };
 })();

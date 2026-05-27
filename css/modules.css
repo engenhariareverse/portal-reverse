@@ -75,7 +75,8 @@
 
 @media (max-width: 700px) {
   /* KPIs: 2 por linha no mobile */
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .kpi-grid       { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .kpi-grid--3    { grid-template-columns: 1fr 1fr; }
   .kpi-card { padding: 14px 12px; gap: 10px; }
   .kpi-value { font-size: 20px; }
 
@@ -223,7 +224,75 @@
   font-weight: 700;
   color: var(--text-primary);
 }
-.preco-val--verde-reverse { color: #7A5F1A; }
+.preco-val--verde-reverse { color: var(--verde-reverse); }
+
+.servico-impostos {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid var(--grafite-border);
+  margin-top: 10px;
+}
+
+.imposto-tag {
+  font-size: 11px;
+  font-family: var(--font-titulo);
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: var(--r-sm);
+  background: var(--laranja-bg);
+  color: var(--laranja);
+  border: 1px solid rgba(230, 81, 0, 0.22);
+}
+
+.imposto-tag--art {
+  background: var(--azul-bg);
+  color: var(--azul);
+  border-color: rgba(21, 101, 192, 0.22);
+}
+
+.imposto-tag--ativo::after {
+  content: ' ✓';
+  opacity: 0.7;
+}
+
+.form-section-divider {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 2px;
+}
+
+.form-section-divider span {
+  font-size: 11px;
+  font-family: var(--font-titulo);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.form-section-divider::before,
+.form-section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--grafite-border);
+}
+
+.form-section-note {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--laranja-bg);
+  border: 1px solid rgba(230,81,0,0.15);
+  border-radius: var(--r-sm);
+  padding: 6px 10px;
+  margin-bottom: 2px;
+}
 
 /* ── Orçamentos ──────────────────────────────── */
 .filtros-bar {
@@ -1116,10 +1185,72 @@
   color: var(--text-muted);
 }
 
+/* KPI row — 4 colunas (Contas a Pagar) */
+.fin-kpi-row--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+.fin-kpi--dourado { border-color: rgba(197,160,74,0.30); }
+
+/* Filtros — Contas a Pagar */
+.fin-filtros-pagar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--branco);
+  border: 1px solid var(--grafite-border);
+  border-radius: var(--r-lg);
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+/* Item de Contas a Pagar — valor em tom diferente */
+.fin-item--pagar .fin-item-valor { color: var(--vermelho); }
+.fin-item--pagar.fin-item--pago  .fin-item-valor { color: var(--text-muted); }
+
+/* Badge de categoria inline nos itens */
+.badge-cat {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--offwhite);
+  color: var(--text-secondary);
+  border: 1px solid var(--grafite-border);
+  white-space: nowrap;
+}
+
+/* Ícone dourado no KPI */
+.kpi-icon--dourado  { background: rgba(197,160,74,0.15); }
+.kpi-icon--laranja  { background: rgba(230,115,0,0.14); }
+.kpi-icon--vermelho { background: rgba(210,55,55,0.13); }
+
+/* KPI grid de 3 colunas (linha de contas a pagar) */
+.kpi-grid--3 { grid-template-columns: repeat(3, 1fr); }
+
+/* Alert laranja para contas próximas do vencimento */
+.kpi-card--warning { border-color: rgba(230,115,0,0.40); }
+
+/* Texto de aviso laranja */
+.text-warning { color: #c46a00; }
+[data-theme="dark"] .text-warning { color: #f09030; }
+
+/* Badge status pendente (dourado) */
+.badge--dourado { background: rgba(197,160,74,0.15); color: #7A5F1A; }
+
+/* Cor texto aviso dourado */
+:root { --dourado-text: #7A5F1A; }
+[data-theme="dark"] { --dourado-text: #C5A04A; }
+
 @media (max-width: 900px) {
-  .fin-kpi-row { grid-template-columns: 1fr 1fr; }
-  .fin-item { flex-wrap: wrap; }
-  .fin-item-valor { min-width: auto; }
+  .fin-kpi-row        { grid-template-columns: 1fr 1fr; }
+  .fin-kpi-row--4     { grid-template-columns: 1fr 1fr; }
+  .fin-item           { flex-wrap: wrap; }
+  .fin-item-valor     { min-width: auto; }
+  .fin-filtros-pagar  { flex-direction: column; align-items: stretch; }
+  .fin-filtros-pagar .btn { width: 100%; justify-content: center; }
 }
 
 /* ── Em Construção ─────────────────────────── */
