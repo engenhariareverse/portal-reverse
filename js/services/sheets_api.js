@@ -18,6 +18,15 @@
  */
 const SheetsAPI = (() => {
   const CONFIG_KEY = 'prospeccao_sheets_url';
+
+  /**
+   * URL padrão do Web App do Google Apps Script da Reverse Engenharia.
+   * Embutida aqui para que o portal já saia pré-configurado de fábrica —
+   * o usuário não precisa colar a URL manualmente em Prospecção → Configurações.
+   * Pode ser sobrescrita normalmente pela tela de configurações.
+   */
+  const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbysom1v4o4yk86EuSvz2jdAJhOgcCJ22TN1wBPW9I2ufXGxK7hupajibTSlV7_ZfSOL7A/exec';
+
   let _cachedUrl = null;
 
   // ──────────────────────────────────────────────────────────
@@ -32,8 +41,17 @@ const SheetsAPI = (() => {
   async function getUrl() {
     if (_cachedUrl) return _cachedUrl;
     const row = await DB.get('config', CONFIG_KEY);
-    _cachedUrl = row ? row.valor : null;
-    return _cachedUrl;
+    if (row && row.valor) {
+      _cachedUrl = row.valor;
+      return _cachedUrl;
+    }
+    // Primeiro carregamento: salva o default para aparecer já configurado na UI.
+    if (DEFAULT_URL) {
+      await DB.put('config', { chave: CONFIG_KEY, valor: DEFAULT_URL });
+      _cachedUrl = DEFAULT_URL;
+      return _cachedUrl;
+    }
+    return null;
   }
 
   // ──────────────────────────────────────────────────────────
