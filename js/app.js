@@ -11,6 +11,7 @@ const APP = (() => {
     arts:       { label: 'ARTs',       module: Arts },
     documentos:  { label: 'Documentos',  module: Documentos  },
     prospeccao:  { label: 'Prospecção',  module: Prospeccao  },
+    ajuda:       { label: 'Ajuda',       module: Ajuda       },
   };
 
   const NEW_BTNS = {
