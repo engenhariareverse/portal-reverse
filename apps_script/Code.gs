@@ -32,7 +32,7 @@
 // SCHEMAS
 // ============================================================
 
-const VERSION = '2.1.0';
+const VERSION = '2.1.1';
 
 const SHEET_PROSP = 'Prospeccao';
 const SHEET_CP    = 'ContasPagar';
@@ -52,8 +52,8 @@ const COLS_CP = [
 ];
 
 const COLS_CLI = [
-  'id', 'nome', 'cnpj_cpf', 'telefone', 'email', 'cidade', 'segmento',
-  'status', 'obs', 'criado_em', 'atualizado_em', 'ativo',
+  'id', 'nome', 'contato_nome', 'cnpj_cpf', 'telefone', 'email', 'cidade',
+  'segmento', 'status', 'obs', 'criado_em', 'atualizado_em', 'ativo',
 ];
 
 // ============================================================
@@ -379,8 +379,8 @@ function _setupClientes() {
 
   // Larguras
   var widths = {
-    nome: 240, cnpj_cpf: 150, telefone: 130, email: 200, cidade: 140,
-    segmento: 160, status: 110, obs: 260, criado_em: 150, atualizado_em: 150,
+    nome: 220, contato_nome: 170, cnpj_cpf: 150, telefone: 130, email: 200,
+    cidade: 140, segmento: 160, status: 110, obs: 260, criado_em: 150, atualizado_em: 150,
   };
   Object.keys(widths).forEach(function(col) {
     var idx = COLS_CLI.indexOf(col) + 1;

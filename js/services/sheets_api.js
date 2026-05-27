@@ -326,16 +326,17 @@ const SheetsAPI = (() => {
     function _map(row) {
       const status = String(row.status || 'lead').toLowerCase().trim();
       return {
-        id:        Number(row.id),
-        nome:      row.nome      || '',
-        cnpj_cpf:  row.cnpj_cpf  || '',
-        telefone:  row.telefone  || '',
-        email:     row.email     || '',
-        cidade:    row.cidade    || '',
-        segmento:  row.segmento  || '',
-        status:    STATUS_OK.has(status) ? status : 'lead',
-        obs:       row.obs       || '',
-        criado_em: row.criado_em || new Date().toISOString(),
+        id:           Number(row.id),
+        nome:         row.nome         || '',
+        contato_nome: row.contato_nome || '',
+        cnpj_cpf:     row.cnpj_cpf     || '',
+        telefone:     row.telefone     || '',
+        email:        row.email        || '',
+        cidade:       row.cidade       || '',
+        segmento:     row.segmento     || '',
+        status:       STATUS_OK.has(status) ? status : 'lead',
+        obs:          row.obs          || '',
+        criado_em:    row.criado_em    || new Date().toISOString(),
       };
     }
 

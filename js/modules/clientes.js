@@ -86,6 +86,7 @@ const Clientes = (() => {
     const lista = _todos.filter(c => {
       const ok_busca = !busca ||
         esc(c.nome).toLowerCase().includes(busca) ||
+        (c.contato_nome || '').toLowerCase().includes(busca) ||
         (c.cnpj_cpf || '').toLowerCase().includes(busca) ||
         (c.email || '').toLowerCase().includes(busca) ||
         (c.cidade || '').toLowerCase().includes(busca) ||
@@ -117,7 +118,8 @@ const Clientes = (() => {
         <table class="table">
           <thead>
             <tr>
-              <th>Nome / Empresa</th>
+              <th>Empresa</th>
+              <th>Contato</th>
               <th>CNPJ / CPF</th>
               <th>Telefone</th>
               <th>Cidade</th>
@@ -133,6 +135,7 @@ const Clientes = (() => {
                   <strong>${esc(c.nome)}</strong>
                   ${c.email ? `<div class="td-sub">${esc(c.email)}</div>` : ''}
                 </td>
+                <td>${esc(c.contato_nome) || '—'}</td>
                 <td>${esc(c.cnpj_cpf) || '—'}</td>
                 <td>${UI.formatPhone(c.telefone)}</td>
                 <td>${esc(c.cidade) || '—'}</td>
@@ -157,8 +160,12 @@ const Clientes = (() => {
       <form id="form-cliente" class="form" onsubmit="return false">
         <div class="form-grid">
           <div class="form-group form-group--full">
-            <label>Nome / Razão Social *</label>
+            <label>Empresa / Razão Social *</label>
             <input type="text" name="nome" class="input" required value="${v('nome')}" placeholder="Ex: Supermercado Silva LTDA" autofocus>
+          </div>
+          <div class="form-group">
+            <label>Nome do Contato</label>
+            <input type="text" name="contato_nome" class="input" value="${v('contato_nome')}" placeholder="Ex: João Silva">
           </div>
           <div class="form-group">
             <label>CNPJ / CPF</label>
@@ -265,7 +272,7 @@ const Clientes = (() => {
         <p style="margin-bottom:16px;color:var(--text-secondary);line-height:1.6">
           Selecione um arquivo <strong>.xlsx</strong> ou <strong>.xls</strong> com os clientes.<br>
           A primeira linha deve conter os cabeçalhos das colunas.<br>
-          <small style="color:var(--text-muted)">Colunas reconhecidas: <strong>nome</strong>, cnpj_cpf, telefone, email, cidade, segmento, status, obs</small>
+          <small style="color:var(--text-muted)">Colunas reconhecidas: <strong>nome</strong>, contato_nome, cnpj_cpf, telefone, email, cidade, segmento, status, obs</small>
         </p>
         <div class="form-group">
           <label>Arquivo Excel *</label>
@@ -327,7 +334,7 @@ const Clientes = (() => {
       btn.disabled = true;
       btn.textContent = 'Importando...';
 
-      const CAMPOS    = ['nome','cnpj_cpf','telefone','email','cidade','segmento','status','obs'];
+      const CAMPOS    = ['nome','contato_nome','cnpj_cpf','telefone','email','cidade','segmento','status','obs'];
       const STATUS_OK = new Set(['lead','prospecto','ativo','inativo']);
       // Dedup: ignora nomes que já existem (case-insensitive)
       const existentes = new Set(_todos.map(c => (c.nome || '').toLowerCase().trim()));
